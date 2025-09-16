@@ -85,8 +85,8 @@ Administration : Gestion des utilisateurs et paramètres système
 
 3.**🧪 Tests**
 
-# Exécuter les tests unitaires
+Exécuter les tests unitaires
 python -m pytest tests/
 
-# Exécuter avec couverture de code
+ Exécuter avec couverture de code
 python -m pytest --cov=app tests/
