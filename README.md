@@ -3,7 +3,7 @@
 [![Python](https://img.shields.io/badge/Python-3.8%2B-blue)](https://www.python.org/)
 [![Flask](https://img.shields.io/badge/Flask-3.1.2-green)](https://flask.palletsprojects.com/)
 [![License](https://img.shields.io/badge/License-MIT-yellow)](LICENSE)
-
+![Logo ADI Quality](data:image/svg+xml,✈️)
 Une plateforme web complète pour l'analyse et la visualisation des données industrielles, développée avec Flask.
 
 ## 🚀 Fonctionnalités
