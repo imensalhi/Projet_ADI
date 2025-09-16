@@ -1,0 +1,2101 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Admin - ADI Quality</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>✈️</text></svg>">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pptxgenjs/3.12.0/pptxgen.bundle.min.js"></script>
+    <style>
+        :root {
+            --primary: #1E3A8A;
+            --secondary: #DC2626;
+            --light: #F8FAFC;
+            --dark: #0F172A;
+            --success: #10B981;
+            --warning: #F59E0B;
+            --info: #3B82F6;
+            --gold: #D4AF37;
+            --previous-year: #bfc3c8;
+            --ytd-gray: #888888;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, var(--light), #E2E8F0);
+            min-height: 100vh;
+            color: var(--dark);
+        }
+
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 100vh;
+            width: 280px;
+            background: linear-gradient(180deg, var(--primary), #1e40af);
+            color: white;
+            padding: 0;
+            z-index: 1000;
+            box-shadow: 4px 0 20px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+        }
+
+        .sidebar.collapsed {
+            width: 80px;
+        }
+
+        .sidebar-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            text-align: center;
+            background-color: rgba(0,0,0,0.1);
+        }
+
+        .sidebar-header img {
+            height: 40px;
+            margin-bottom: 0.5rem;
+        }
+
+        .sidebar-header h5 {
+            margin: 0;
+            font-size: 1.1rem;
+            font-weight: 600;
+            transition: opacity 0.3s ease;
+        }
+
+        .sidebar.collapsed .sidebar-header h5 {
+            opacity: 0;
+        }
+
+        .sidebar-nav {
+            list-style: none;
+            padding: 1rem 0;
+            margin: 0;
+        }
+
+        .nav-item {
+            margin: 0.2rem 0.5rem;
+        }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            padding: 0.8rem 1rem;
+            color: rgba(255, 255, 255, 0.85);
+            text-decoration: none;
+            transition: all 0.3s ease;
+            border-radius: 8px;
+            font-size: 0.95rem;
+        }
+
+        .nav-link:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            transform: translateX(3px);
+        }
+
+        .nav-link.active {
+            background: var(--secondary);
+            color: white;
+            box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
+        }
+
+        .nav-link i {
+            width: 24px;
+            text-align: center;
+            margin-right: 1rem;
+            font-size: 1.1rem;
+        }
+
+        .sidebar.collapsed .nav-link span {
+            opacity: 0;
+            width: 0;
+        }
+
+        .sidebar.collapsed .nav-link {
+            justify-content: center;
+            padding: 0.8rem;
+        }
+
+        .sidebar.collapsed .nav-link i {
+            margin-right: 0;
+            font-size: 1.2rem;
+        }
+
+        .sidebar-toggle {
+            position: fixed;
+            top: 1rem;
+            left: 290px;
+            z-index: 1001;
+            background: white;
+            color: var(--primary);
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            transition: all 0.3s ease;
+        }
+
+        .sidebar.collapsed + .sidebar-toggle {
+            left: 90px;
+        }
+
+        .sidebar-toggle:hover {
+            background: var(--secondary);
+            color: white;
+            transform: scale(1.1);
+        }
+
+        .main-content {
+            margin-left: 280px;
+            transition: margin-left 0.3s ease;
+            min-height: 100vh;
+            padding-bottom: 2rem;
+        }
+
+        .main-content.expanded {
+            margin-left: 80px;
+        }
+
+        .header {
+            background: white;
+            padding: 1.2rem 2rem;
+            box-shadow: 0 2px 15px rgba(0,0,0,0.05);
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .user-profile {
+            display: flex;
+            align-items: center;
+        }
+
+        .user-avatar {
+            width: 45px;
+            height: 45px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            margin-right: 1rem;
+            font-size: 1.1rem;
+        }
+
+        .user-details h5 {
+            margin: 0;
+            color: var(--dark);
+            font-weight: 600;
+            font-size: 1rem;
+        }
+
+        .user-details small {
+            color: #64748B;
+            font-size: 0.85rem;
+        }
+
+        .logout-btn {
+            background: transparent;
+            color: var(--secondary);
+            border: 1px solid var(--secondary);
+            padding: 0.5rem 1.2rem;
+            border-radius: 8px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+        }
+
+        .logout-btn:hover {
+            background: var(--secondary);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(220, 38, 38, 0.2);
+        }
+
+        .dashboard-content {
+            padding: 0 2rem;
+        }
+
+        .page-title {
+            color: var(--primary);
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+        }
+
+        .page-title i {
+            margin-right: 0.8rem;
+            font-size: 1.4rem;
+        }
+
+        .charts-container {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.05);
+            margin-bottom: 2rem;
+            position: relative;
+        }
+
+        .charts-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+        }
+
+        .section-title {
+            color: var(--primary);
+            font-weight: 600;
+            font-size: 1.2rem;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+        }
+
+        .section-title i {
+            margin-right: 0.8rem;
+            color: var(--secondary);
+        }
+
+        .controls-section {
+            background: var(--light);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .form-select, .btn-refresh, .btn-chart-type, .btn-toggle-values {
+            border-radius: 6px;
+            border: 2px solid #e2e8f0;
+            transition: all 0.3s ease;
+            font-size: 0.95rem;
+            padding: 0.5rem 1rem;
+        }
+
+        .form-select:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 0.2rem rgba(30, 58, 138, 0.25);
+        }
+
+        .btn-refresh, .btn-chart-type, .btn-toggle-values {
+            background: var(--primary);
+            color: white;
+            border: none;
+            font-weight: 500;
+        }
+
+        .btn-refresh:hover, .btn-chart-type:hover, .btn-toggle-values:hover {
+            background: #1e40af;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(30, 58, 138, 0.3);
+        }
+
+        .btn-chart-type.previous-year {
+            background: var(--previous-year);
+            color: var(--dark);
+        }
+
+        .btn-chart-type.previous-year:hover {
+            background: #a0a5aa;
+            box-shadow: 0 4px 12px rgba(191, 195, 200, 0.3);
+        }
+
+        .chart-container {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.05);
+            margin-bottom: 2rem;
+            position: relative;
+        }
+
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .chart-title {
+            color: var(--primary);
+            font-weight: 600;
+            font-size: 1.2rem;
+            margin: 0;
+            display: flex;
+            align-items: center;
+        }
+
+        .chart-title i {
+            margin-right: 0.5rem;
+            color: var(--secondary);
+        }
+
+        .chart-canvas {
+            position: relative;
+            height: 400px;
+            margin-top: 1rem;
+        }
+
+        .loading-indicator {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            z-index: 10;
+        }
+
+        .loading-indicator.show {
+            display: flex;
+        }
+
+        .loading-spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #f3f4f6;
+            border-top: 4px solid var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 1rem;
+        }
+
+        .error-message {
+            color: var(--secondary);
+            text-align: center;
+            padding: 2rem;
+            display: none;
+        }
+
+        .error-message.show {
+            display: block;
+        }
+
+        .chart-description {
+            background: var(--light);
+            border-left: 4px solid var(--info);
+            padding: 1rem;
+            margin-top: 1rem;
+            border-radius: 0 8px 8px 0;
+        }
+
+        .chart-description p {
+            margin: 0;
+            font-size: 0.9rem;
+            color: #4B5563;
+            line-height: 1.5;
+        }
+
+        @media (max-width: 992px) {
+            .sidebar {
+                transform: translateX(-100%);
+                z-index: 1050;
+            }
+            
+            .sidebar.show {
+                transform: translateX(0);
+            }
+            
+            .main-content {
+                margin-left: 0;
+            }
+            
+            .sidebar-toggle {
+                left: 1rem;
+                z-index: 1051;
+            }
+
+            .controls-section .row {
+                flex-direction: column;
+            }
+
+            .form-select, .btn-refresh, .btn-chart-type, .btn-toggle-values {
+                width: 100%;
+                margin-bottom: 0.5rem;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .header {
+                padding: 1rem;
+            }
+            
+            .dashboard-content {
+                padding: 0 1rem;
+            }
+            
+            .chart-container {
+                padding: 1rem;
+            }
+        }
+
+        .custom-alert {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 9999;
+            min-width: 300px;
+            padding: 1rem;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            transition: all 0.3s ease;
+        }
+
+        .custom-alert.success {
+            background: #f0fdf4;
+            color: #166534;
+            border-left: 4px solid var(--success);
+        }
+
+        .custom-alert.danger {
+            background: #fef2f2;
+            color: #991b1b;
+            border-left: 4px solid var(--secondary);
+        }
+
+        .custom-alert.info {
+            background: #eff6ff;
+            color: #1e40af;
+            border-left: 4px solid var(--info);
+        }
+
+        .custom-alert .btn-close {
+            background: none;
+            border: none;
+            font-size: 1rem;
+            cursor: pointer;
+            color: inherit;
+        }
+
+        .container-fluid {
+            padding: 2rem;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .user-avatar {
+            width: 45px;
+            height: 45px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 1.1rem;
+            margin-right: 1rem;
+            animation: avatarPulse 3s ease-in-out infinite;
+        }
+
+        .user-details h2 {
+            margin: 0;
+            color: var(--dark);
+            font-weight: 600;
+            font-size: 1rem;
+        }
+
+        .user-details small {
+            color: #64748B;
+            font-size: 0.85rem;
+        }
+
+        .access-badge {
+            background: linear-gradient(135deg, rgba(107, 114, 128, 0.1), rgba(156, 163, 175, 0.1));
+            color: #374151;
+            padding: 0.5rem 1rem;
+            border-radius: 15px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            border: 1px solid rgba(107, 114, 128, 0.2);
+        }
+
+        .ytd-container {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.05);
+            margin-bottom: 2rem;
+            position: relative;
+        }
+
+        .ytd-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: linear-gradient(90deg, var(--success), var(--warning));
+        }
+
+        .ytd-card {
+            background: var(--light);
+            border-radius: 8px;
+            padding: 1.5rem;
+            text-align: center;
+            transition: all 0.3s ease;
+            border: 1px solid #E2E8F0;
+            height: 100%;
+        }
+
+        .ytd-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+
+        .ytd-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            margin: 0 auto 1rem;
+            color: white;
+        }
+
+        .ytd-icon.ppm { background: linear-gradient(135deg, var(--secondary), #EF4444); }
+        .ytd-icon.cost { background: linear-gradient(135deg, var(--warning), #D97706); }
+        .ytd-icon.rate { background: linear-gradient(135deg, var(--primary), #3B82F6); }
+        .ytd-icon.quality { background: linear-gradient(135deg, var(--success), #059669); }
+        .ytd-icon.reclamations { background: linear-gradient(135deg, #8B5CF6, #7C3AED); }
+
+        .ytd-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--dark);
+            margin-bottom: 0.5rem;
+        }
+
+        .ytd-label {
+            color: #64748B;
+            font-weight: 500;
+            font-size: 0.9rem;
+        }
+
+        .ytd-workshop {
+            font-size: 0.9rem;
+            color: var(--secondary);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .btn-toggle-ytd {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 0.5rem 1.2rem;
+            border-radius: 8px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            font-size: 0.95rem;
+            margin-bottom: 1rem;
+        }
+
+        .btn-toggle-ytd:hover {
+            background: #1e40af;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(30, 58, 138, 0.3);
+        }
+
+        .info-banner {
+            background: var(--light);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+            border-left: 4px solid var(--info);
+        }
+
+        .info-banner h6 {
+            color: var(--primary);
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .info-banner p {
+            color: #4B5563;
+            margin: 0;
+            font-size: 0.9rem;
+        }
+
+        .conformity-container {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.05);
+            margin-bottom: 2rem;
+            position: relative;
+        }
+
+        .conformity-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: linear-gradient(90deg, var(--success), var(--secondary));
+        }
+
+        .conformity-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+
+        .conformity-table th,
+        .conformity-table td {
+            padding: 0.8rem;
+            text-align: center;
+            border: 1px solid #e2e8f0;
+        }
+
+        .conformity-table th {
+            background: var(--light);
+            font-weight: 600;
+            color: var(--primary);
+        }
+
+        .conformity-status {
+            padding: 0.3rem 0.8rem;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        .conformity-status.conforme {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--success);
+        }
+
+        .conformity-status.non-conforme {
+            background: rgba(220, 38, 38, 0.1);
+            color: var(--secondary);
+        }
+
+        @keyframes avatarPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .charts-container, .ytd-container, .chart-container, .conformity-container {
+            animation: fadeIn 0.6s ease-out;
+        }
+
+        @media (max-width: 768px) {
+            .container-fluid {
+                padding: 1rem;
+            }
+
+            .header {
+                padding: 1rem;
+            }
+
+            .user-info {
+                flex-direction: column;
+                text-align: center;
+                gap: 1rem;
+            }
+
+            .charts-container, .ytd-container, .conformity-container {
+                padding: 1rem;
+            }
+
+            .form-select, .btn-refresh, .btn-chart-type, .btn-toggle-values {
+                width: 100%;
+                margin-bottom: 0.5rem;
+            }
+
+            .conformity-table {
+                font-size: 0.9rem;
+            }
+
+            .conformity-table th,
+            .conformity-table td {
+                padding: 0.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <img src="static/images/logo.png" alt="Logo">
+            <h5>ADI Quality</h5>
+        </div>
+        <ul class="sidebar-nav">
+            <li class="nav-item">
+                <a href="#" class="nav-link active">
+                    <i class="fas fa-tachometer-alt"></i>
+                    <span>Dashboard</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="/admin/users" class="nav-link">
+                    <i class="fas fa-users-cog"></i>
+                    <span>Gestion Utilisateurs</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="/admin/thresholds" class="nav-link">
+                    <i class="fas fa-sliders-h"></i>
+                    <span>Gestion Seuils</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="/admin/consultation" class="nav-link">
+                    <i class="fas fa-search"></i>
+                    <span>Consultation Données</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+
+    <button class="sidebar-toggle" id="sidebarToggle">
+        <i class="fas fa-bars"></i>
+    </button>
+
+    <main class="main-content" id="mainContent">
+        <header class="header">
+            <div class="user-profile">
+                <div class="user-details">
+                </div>
+            </div>
+            <button class="logout-btn" onclick="logout()">
+                <i class="fas fa-sign-out-alt me-1"></i>
+                Déconnexion
+            </button>
+        </header>
+
+        <div class="dashboard-content">
+            <h1 class="page-title">
+                <i class="fas fa-tachometer-alt"></i>
+                Tableau de Bord Administrateur
+            </h1>
+
+            <div class="info-banner" data-aos="fade-up">
+                <h6><i class="fas fa-info-circle me-2"></i>Tableau de Bord Qualité ADI</h6>
+                <p>
+                    Bienvenue dans votre espace de visualisation des indicateurs qualité.
+                    Consultez les graphiques et analyses de performance en temps réel pour tous les ateliers.
+                </p>
+            </div>
+
+            <div class="charts-container" data-aos="fade-up" data-aos-delay="200">
+                <h3 class="section-title">
+                    <i class="fas fa-chart-line me-2"></i>
+                    Analyses Graphiques par Indicateur
+                </h3>
+
+                <div class="controls-section">
+                    <div class="row align-items-center">
+                        <div class="col-md-3 mb-3">
+                            <label for="atelierSelect" class="form-label fw-bold">Atelier :</label>
+                            <select class="form-select" id="atelierSelect" onchange="loadCharts(); loadConformityData();">
+                                <option value="Manchons" selected>Manchons</option>
+                                <option value="Colliers">Colliers</option>
+                                <option value="Racks">Racks</option>
+                                <option value="Moulage">Moulage</option>
+                                <option value="Protections thermiques">Protections thermiques</option>
+                                <option value="Isolant souple">Isolant souple</option>
+                                <option value="Composite">Composite</option>
+                                <option value="Système de visualisation">Système de visualisation</option>
+                                <option value="UAP1">UAP1 (Protections thermiques + Isolant souple)</option>
+                                <option value="UAP2">UAP2 (Autres Ateliers)</option>
+                                <option value="Total">Total</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <label for="anneeSelect" class="form-label fw-bold">Années :</label>
+                            <select class="form-select" id="anneeSelect" onchange="loadCharts()"></select>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <label class="form-label fw-bold" id="chartTypeCurrentLabel">Type Graphique :</label>
+                            <button class="btn-chart-type w-100" id="chartTypeCurrent" onclick="cycleChartType('current')">
+                                <i class="fas fa-chart-bar me-2"></i>
+                                Histogramme
+                            </button>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <label class="form-label fw-bold" id="chartTypePreviousLabel">Type Graphique :</label>
+                            <button class="btn-chart-type previous-year w-100" id="chartTypePrevious" onclick="cycleChartType('previous')">
+                                <i class="fas fa-chart-area me-2"></i>
+                                Aire
+                            </button>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <label class="form-label fw-bold">&nbsp;</label>
+                            <div>
+                                <button class="btn-refresh w-100" onclick="refreshData()">
+                                    <i class="fas fa-sync-alt me-2"></i>
+                                    Actualiser
+                                </button>
+                            </div>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <label class="form-label fw-bold">&nbsp;</label>
+                            <div>
+                                <button class="btn-toggle-values w-100" id="toggleValuesBtn" onclick="toggleChartValues()">
+                                    <i class="fas fa-eye me-2"></i>
+                                    Afficher Valeurs
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row" id="chartsGrid">
+                    <div class="col-12 mb-4">
+                        <div class="chart-container" data-aos="fade-up">
+                            <div class="chart-header">
+                                <h4 class="chart-title">
+                                    <i class="fas fa-exclamation-triangle"></i>
+                                    PPM Officiel
+                                </h4>
+                            </div>
+                            <div class="chart-canvas">
+                                <div class="loading-indicator" id="ppmOfficielLoading">
+                                    <div class="loading-spinner"></div>
+                                    <p>Chargement des données...</p>
+                                </div>
+                                <div class="error-message" id="ppmOfficielError">
+                                    <i class="fas fa-exclamation-triangle"></i>
+                                    <p>Erreur lors du chargement des données</p>
+                                </div>
+                                <canvas id="ppmOfficielChart"></canvas>
+                            </div>
+                            <div class="chart-description">
+                                <p><strong>PPM Officiel:</strong> Mesure le nombre de défauts par million de pièces produites selon les standards officiels clients.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-12 mb-4">
+                        <div class="chart-container" data-aos="fade-up">
+                            <div class="chart-header">
+                                <h4 class="chart-title">
+                                    <i class="fas fa-bell"></i>
+                                    PPM Non Officiel
+                                </h4>
+                            </div>
+                            <div class="chart-canvas">
+                                <div class="loading-indicator" id="ppmNonOfficielLoading">
+                                    <div class="loading-spinner"></div>
+                                    <p>Chargement des données...</p>
+                                </div>
+                                <div class="error-message" id="ppmNonOfficielError">
+                                    <i class="fas fa-exclamation-triangle"></i>
+                                    <p>Erreur lors du chargement des données</p>
+                                </div>
+                                <canvas id="ppmNonOfficielChart"></canvas>
+                            </div>
+                            <div class="chart-description">
+                                <p><strong>PPM Non Officiel:</strong> Inclut tous les défauts détectés en interne, y compris ceux non comptabilisés officiellement.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-12 mb-4">
+                        <div class="chart-container" data-aos="fade-up">
+                            <div class="chart-header">
+                                <h4 class="chart-title">
+                                    <i class="fas fa-trash"></i>
+                                    Taux de Rebut
+                                </h4>
+                            </div>
+                            <div class="chart-canvas">
+                                <div class="loading-indicator" id="tauxRebutLoading">
+                                    <div class="loading-spinner"></div>
+                                    <p>Chargement des données...</p>
+                                </div>
+                                <div class="error-message" id="tauxRebutError">
+                                    <i class="fas fa-exclamation-triangle"></i>
+                                    <p>Erreur lors du chargement des données</p>
+                                </div>
+                                <canvas id="tauxRebutChart"></canvas>
+                            </div>
+                            <div class="chart-description">
+                                <p><strong>Taux de Rebut:</strong> Pourcentage de pièces mises au rebut par rapport à la production totale.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-12 mb-4">
+                        <div class="chart-container" data-aos="fade-up">
+                            <div class="chart-header">
+                                <h4 class="chart-title">
+                                    <i class="fas fa-tools"></i>
+                                    Taux de Retouche
+                                </h4>
+                            </div>
+                            <div class="chart-canvas">
+                                <div class="loading-indicator" id="tauxRetoucheLoading">
+                                    <div class="loading-spinner"></div>
+                                    <p>Chargement des données...</p>
+                                </div>
+                                <div class="error-message" id="tauxRetoucheError">
+                                    <i class="fas fa-exclamation-triangle"></i>
+                                    <p>Erreur lors du chargement des données</p>
+                                </div>
+                                <canvas id="tauxRetoucheChart"></canvas>
+                            </div>
+                            <div class="chart-description">
+                                <p><strong>Taux de Retouche:</strong> Pourcentage de pièces nécessitant une retouche pour être conformes.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-12 mb-4">
+                        <div class="chart-container" data-aos="fade-up">
+                            <div class="chart-header">
+                                <h4 class="chart-title">
+                                    <i class="fas fa-lira-sign"></i>
+                                    Coût de Rebut
+                                </h4>
+                            </div>
+                            <div class="chart-canvas">
+                                <div class="loading-indicator" id="coutRebutLoading">
+                                    <div class="loading-spinner"></div>
+                                    <p>Chargement des données...</p>
+                                </div>
+                                <div class="error-message" id="coutRebutError">
+                                    <i class="fas fa-exclamation-triangle"></i>
+                                    <p>Erreur lors du chargement des données</p>
+                                </div>
+                                <canvas id="coutRebutChart"></canvas>
+                            </div>
+                            <div class="chart-description">
+                                <p><strong>Coût de Rebut:</strong> Valeur financière des pièces mises au rebut, incluant coûts matière et main-d'œuvre.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-12 mb-4" id="cnqContainer" style="display: none;">
+                        <div class="chart-container" data-aos="fade-up">
+                            <div class="chart-header">
+                                <h4 class="chart-title">
+                                    <i class="fas fa-award"></i>
+                                    Taux de Non-Qualité (CNQ)
+                                </h4>
+                            </div>
+                            <div class="chart-canvas">
+                                <div class="loading-indicator" id="cnqLoading">
+                                    <div class="loading-spinner"></div>
+                                    <p>Chargement des données...</p>
+                                </div>
+                                <div class="error-message" id="cnqError">
+                                    <i class="fas fa-exclamation-triangle"></i>
+                                    <p>Erreur lors du chargement des données</p>
+                                </div>
+                                <canvas id="cnqChart"></canvas>
+                            </div>
+                            <div class="chart-description">
+                                <p><strong>Taux de Non-Qualité (CNQ):</strong> Pourcentage des défauts totaux, incluant retouches, rebuts, et réclamations, par rapport à la production totale.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-12 mb-4">
+                        <div class="chart-container" data-aos="fade-up">
+                            <div class="chart-header">
+                                <h4 class="chart-title">
+                                    <i class="fas fa-file-invoice"></i>
+                                    Réclamations
+                                </h4>
+                            </div>
+                            <div class="chart-canvas">
+                                <div class="loading-indicator" id="reclamationsLoading">
+                                    <div class="loading-spinner"></div>
+                                    <p>Chargement des données...</p>
+                                </div>
+                                <div class="error-message" id="reclamationsError">
+                                    <i class="fas fa-exclamation-triangle"></i>
+                                    <p>Erreur lors du chargement des données</p>
+                                </div>
+                                <canvas id="reclamationsChart"></canvas>
+                            </div>
+                            <div class="chart-description">
+                                <p><strong>Réclamations:</strong> Nombre de plaintes clients concernant la qualité des produits livrés.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="conformity-container" data-aos="fade-up" data-aos-delay="300">
+                <h3 class="section-title" id="conformityTitle">
+                    <i class="fas fa-check-circle me-2"></i>
+                    État de Conformité par Mois
+                </h3>
+                <div id="conformityContent">
+                    <p class="text-muted">Sélectionnez un atelier pour voir l'état de conformité des indicateurs.</p>
+                </div>
+            </div>
+
+            <div class="ytd-container" data-aos="fade-up" data-aos-delay="400">
+                <h3 class="section-title" id="ytdTitle">
+                    <i class="fas fa-calendar-alt me-2"></i>
+                    Indicateurs YTD (Year to Date)
+                </h3>
+                <button class="btn-toggle-ytd" onclick="toggleYTD()">
+                    <i class="fas fa-eye me-2"></i>
+                    Afficher/Masquer YTD
+                </button>
+                <div class="row" id="ytdGrid" style="display: none;"></div>
+            </div>
+        </div>
+    </main>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.js"></script>
+    <script>
+        AOS.init({
+            duration: 600,
+            once: true,
+            easing: 'ease-out-quad'
+        });
+
+        let charts = {
+            ppmOfficiel: null,
+            ppmNonOfficiel: null,
+            tauxRebut: null,
+            tauxRetouche: null,
+            coutRebut: null,
+            cnq: null,
+            reclamations: null
+        };
+
+        let chartTypes = {
+            current: 'bar',
+            previous: 'area'
+        };
+
+        let showValues = true;
+
+        window.addEventListener('load', function() {
+            const currentYear = new Date().getFullYear();
+            const previousYear = currentYear - 1;
+
+            // Dynamically populate anneeSelect
+            const anneeSelect = document.getElementById('anneeSelect');
+            anneeSelect.innerHTML = `
+                <option value="${currentYear}">${currentYear}</option>
+                <option value="${previousYear}">${previousYear}</option>
+                <option value="both" selected>${currentYear} + ${previousYear}</option>
+            `;
+
+            // Update chart type labels dynamically
+            document.getElementById('chartTypeCurrentLabel').textContent = `Type Graphique ${currentYear} :`;
+            document.getElementById('chartTypePreviousLabel').textContent = `Type Graphique ${previousYear} :`;
+
+            // Update section titles dynamically
+            document.getElementById('conformityTitle').innerHTML = `<i class="fas fa-check-circle me-2"></i>État de Conformité par Mois - ${currentYear}`;
+            document.getElementById('ytdTitle').innerHTML = `<i class="fas fa-calendar-alt me-2"></i>Indicateurs YTD (Year to Date) ${currentYear}`;
+
+            document.getElementById('atelierSelect').value = 'Manchons';
+            updateChartTypeButtons();
+            loadCharts();
+            loadYTDData();
+            loadConformityData();
+            setInterval(refreshData, 300000);
+        });
+
+        function updateChartTypeButtons() {
+            const btnCurrent = document.getElementById('chartTypeCurrent');
+            const btnPrevious = document.getElementById('chartTypePrevious');
+            
+            btnCurrent.innerHTML = '<i class="fas fa-chart-bar me-2"></i>Histogramme';
+            btnPrevious.innerHTML = '<i class="fas fa-chart-area me-2"></i>Aire';
+        }
+
+        function showLoading(chartId) {
+            const loadingEl = document.getElementById(chartId + 'Loading');
+            const errorEl = document.getElementById(chartId + 'Error');
+            const canvas = document.getElementById(chartId + 'Chart');
+            if (loadingEl) loadingEl.classList.add('show');
+            if (errorEl) errorEl.classList.remove('show');
+            if (canvas) canvas.style.display = 'none';
+        }
+
+        function hideLoading(chartId) {
+            const loadingEl = document.getElementById(chartId + 'Loading');
+            const errorEl = document.getElementById(chartId + 'Error');
+            const canvas = document.getElementById(chartId + 'Chart');
+            if (loadingEl) loadingEl.classList.remove('show');
+            if (errorEl) errorEl.classList.remove('show');
+            if (canvas) canvas.style.display = 'block';
+        }
+
+        function showError(chartId, message = 'Erreur lors du chargement des données') {
+            const loadingEl = document.getElementById(chartId + 'Loading');
+            const errorEl = document.getElementById(chartId + 'Error');
+            const canvas = document.getElementById(chartId + 'Chart');
+            
+            if (loadingEl) loadingEl.classList.remove('show');
+            if (errorEl) {
+                errorEl.classList.add('show');
+                errorEl.innerHTML = `
+                    <i class="fas fa-exclamation-triangle" style="color: #DC2626; font-size: 2rem;"></i>
+                    <p style="color: #DC2626; font-weight: bold; margin-top: 1rem;">${message}</p>
+                    <button class="btn btn-outline-danger btn-sm mt-2" onclick="loadCharts()">
+                        <i class="fas fa-refresh me-1"></i>Réessayer
+                    </button>
+                `;
+            }
+            if (canvas) canvas.style.display = 'none';
+            
+            console.error(`Erreur pour ${chartId}:`, message);
+        }
+
+        function createDynamicBarColors(data, threshold) {
+            return data.map(value => value > threshold ? '#DC2626' : '#10B981');
+        }
+
+        function getIndicatorName(indicator) {
+            const names = {
+                'ppm_officiel': 'PPM Officiel',
+                'ppm_non_officiel': 'PPM Non Officiel',
+                'taux_rebut': 'Taux de Rebut',
+                'taux_retouche': 'Taux de Retouche',
+                'cout_rebut': 'Coût de Rebut',
+                'cnq': 'Taux de Non-Qualité (CNQ)',
+                'nombre_reclamations': 'Réclamations'
+            };
+            return names[indicator] || indicator;
+        }
+
+        function getIndicatorUnit(indicator) {
+            const units = {
+                'ppm_officiel': 'PPM',
+                'ppm_non_officiel': 'PPM',
+                'taux_rebut': 'Pourcentage (%)',
+                'taux_retouche': 'Pourcentage (%)',
+                'cout_rebut': 'TND',
+                'cnq': 'Pourcentage (%)',
+                'nombre_reclamations': 'Nombre'
+            };
+            return units[indicator] || 'Valeur';
+        }
+
+        function cycleChartType(year) {
+            const types = ['bar', 'line', 'area'];
+            const currentIdx = types.indexOf(chartTypes[year]);
+            chartTypes[year] = types[(currentIdx + 1) % types.length];
+            const btn = document.getElementById(`chartType${year === 'current' ? 'Current' : 'Previous'}`);
+            const typeText = chartTypes[year] === 'bar' ? 'Histogramme' :
+                            chartTypes[year] === 'line' ? 'Courbe' : 'Aire';
+            btn.innerHTML = `<i class="fas fa-chart-${chartTypes[year]} me-2"></i>${typeText}`;
+            loadCharts();
+        }
+
+        function formatValue(value, indicator) {
+            if (value >= 1000000) {
+                return (value / 1000000).toFixed(3) + 'M';
+            } else if (value >= 1000) {
+                return (value / 1000).toFixed(3) + 'K';
+            }
+            return value.toFixed(3);
+        }
+
+        function addChartValues(chartId) {
+            if (!showValues) return;
+            
+            const chart = charts[chartId.replace('Chart', '')];
+            if (!chart) return;
+
+            const ctx = chart.ctx;
+            chart.data.datasets.forEach((dataset, i) => {
+                if (dataset.label === 'Seuil' && chart.options.indicator !== 'nombre_reclamations') return;
+                
+                const meta = chart.getDatasetMeta(i);
+                if (!meta.hidden) {
+                    meta.data.forEach((bar, index) => {
+                        const data = dataset.data[index];
+                        if (data !== 0 && data !== null) {
+                            const x = bar.x;
+                            const y = bar.y;
+                            const text = formatValue(data, chart.options.indicator || '');
+                            
+                            ctx.fillStyle = '#333';
+                            ctx.font = 'bold 12px Arial';
+                            ctx.textAlign = 'center';
+                            
+                            if (y < 20) {
+                                ctx.fillText(text, x, y + 20);
+                            } else {
+                                ctx.fillText(text, x, y - 5);
+                            }
+                        }
+                    });
+                }
+            });
+        }
+
+        function createChart(canvasId, data, options = {}) {
+            const ctx = document.getElementById(canvasId).getContext('2d');
+            const chartKey = canvasId.replace('Chart', '');
+            if (charts[chartKey]) {
+                charts[chartKey].destroy();
+            }
+
+            const defaultOptions = {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                        labels: {
+                            usePointStyle: true,
+                            padding: 20,
+                            font: { size: 12 }
+                        }
+                    },
+                    tooltip: {
+                        mode: 'index',
+                        intersect: false,
+                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                        titleColor: 'white',
+                        bodyColor: 'white',
+                        borderColor: 'rgba(255, 255, 255, 0.2)',
+                        borderWidth: 1,
+                        callbacks: {
+                            label: function(context) {
+                                let label = context.dataset.label || '';
+                                if (label) label += ': ';
+                                const value = context.parsed.y;
+                                if (label.includes('PPM')) {
+                                    label += formatValue(value, 'ppm') + ' PPM';
+                                } else if (label.includes('Taux')) {
+                                    label += formatValue(value, 'taux') + '%';
+                                } else if (label.includes('Coût')) {
+                                    label += formatValue(value, 'cout') + ' TND';
+                                } else {
+                                    label += formatValue(value, 'other');
+                                }
+                                return label;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: { drawBorder: false, color: 'rgba(0, 0, 0, 0.1)' },
+                        ticks: { 
+                            font: { size: 11 },
+                            callback: function(value) {
+                                return formatValue(value, options.indicator || '');
+                            }
+                        },
+                        title: { display: true, text: options.scales?.y?.title?.text || '' }
+                    },
+                    x: {
+                        grid: { display: false },
+                        ticks: { font: { size: 11 } }
+                    }
+                },
+                interaction: {
+                    mode: 'index',
+                    intersect: false
+                },
+                animation: {
+                    onComplete: function() {
+                        addChartValues(canvasId);
+                    }
+                }
+            };
+
+            charts[chartKey] = new Chart(ctx, {
+                type: 'bar',
+                data: data,
+                options: Object.assign({}, defaultOptions, options)
+            });
+        }
+
+        function toggleChartValues() {
+            showValues = !showValues;
+            const btn = document.getElementById('toggleValuesBtn');
+            btn.innerHTML = `<i class="fas fa-${showValues ? 'eye' : 'eye-slash'} me-2"></i>${showValues ? 'Afficher' : 'Masquer'} Valeurs`;
+            loadCharts();
+        }
+
+// Fonction  analyzeIndicator -
+async function analyzeIndicator(indicator, chartId) {
+    const atelier = document.getElementById('atelierSelect').value;
+    const yearSelection = document.getElementById('anneeSelect').value;
+    const currentMonth = new Date().getMonth() + 1;
+    const months = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Jun', 'Jul', 'Aoû', 'Sep', 'Oct', 'Nov', 'Déc'];
+
+    const currentYear = new Date().getFullYear();
+    const previousYear = currentYear - 1;
+
+    console.log(`=== analyzeIndicator CORRIGÉ ===`);
+    console.log(`Indicateur: ${indicator}, ChartId: ${chartId}, Atelier: ${atelier}`);
+
+    if (!atelier) {
+        alert('Veuillez sélectionner un atelier.');
+        return;
+    }
+
+    if (indicator === 'cnq' && atelier !== 'Total') {
+        console.log('CNQ ignoré car atelier != Total');
+        return;
+    }
+
+    showLoading(chartId);
+
+    try {
+        let apiUrl = '';
+        if (atelier === 'Total') {
+            apiUrl = `/api/charts_data?annee=${currentYear}&aggregate=total`;
+        } else if (atelier === 'UAP1') {
+            apiUrl = `/api/charts_data?atelier=Protections thermiques,Isolant souple&annee=${currentYear}&aggregate=sum`;
+        } else if (atelier === 'UAP2') {
+            apiUrl = `/api/charts_data?atelier=Manchons,Colliers,Racks,Moulage,Composite,Système de visualisation&annee=${currentYear}&aggregate=sum`;
+        } else {
+            apiUrl = `/api/charts_data?atelier=${encodeURIComponent(atelier)}&annee=${currentYear}`;
+        }
+
+        console.log(`API URL pour ${indicator}: ${apiUrl}`);
+
+        let dataCurrent = null;
+        let dataPrevious = null;
+
+        // Récupérer les données pour l'année sélectionnée
+        if (yearSelection === `${currentYear}` || yearSelection === 'both') {
+            const responseCurrent = await fetch(apiUrl);
+            if (!responseCurrent.ok) throw new Error(`Erreur API: ${responseCurrent.status}`);
+            dataCurrent = await responseCurrent.json();
+        }
+
+        if (yearSelection === `${previousYear}` || yearSelection === 'both') {
+            const prevApiUrl = apiUrl.replace(`annee=${currentYear}`, `annee=${previousYear}`);
+            const responsePrevious = await fetch(prevApiUrl);
+            if (!responsePrevious.ok) throw new Error(`Erreur API: ${responsePrevious.status}`);
+            dataPrevious = await responsePrevious.json();
+        }
+
+        // Récupérer les données brutes pour calculer correctement les YTD
+        let rawDataCurrent = null;
+        let rawDataPrevious = null;
+
+        try {
+            if (yearSelection === `${currentYear}` || yearSelection === 'both') {
+                const rawApiUrlCurrent = apiUrl + '&raw_data=true';
+                const rawResponseCurrent = await fetch(rawApiUrlCurrent);
+                if (rawResponseCurrent.ok) {
+                    rawDataCurrent = await rawResponseCurrent.json();
+                }
+            }
+
+            if (yearSelection === `${previousYear}` || yearSelection === 'both') {
+                const rawApiUrlPrevious = apiUrl.replace(`annee=${currentYear}`, `annee=${previousYear}`) + '&raw_data=true';
+                const rawResponsePrevious = await fetch(rawApiUrlPrevious);
+                if (rawResponsePrevious.ok) {
+                    rawDataPrevious = await rawResponsePrevious.json();
+                }
+            }
+        } catch (e) {
+            console.log('Données brutes non disponibles, utilisation méthode alternative');
+        }
+
+        let datasets = [];
+        const currentData = [];
+        const previousData = [];
+
+        // Récupérer les données mensuelles
+        for (let month = 1; month <= 12; month++) {
+            if (dataCurrent) {
+                currentData.push(dataCurrent.monthly_data[month][indicator] || 0);
+            }
+            if (dataPrevious) {
+                previousData.push(dataPrevious.monthly_data[month][indicator] || 0);
+            }
+        }
+
+        const threshold = (dataCurrent || dataPrevious)?.seuils[indicator] || 0;
+
+        // Ajouter les datasets pour les données mensuelles
+        if (yearSelection === `${currentYear}` || yearSelection === 'both') {
+            datasets.push({
+                type: chartTypes.current === 'area' ? 'line' : chartTypes.current,
+                label: `${getIndicatorName(indicator)} ${yearSelection === 'both' ? currentYear : ''}`,
+                data: currentData,
+                backgroundColor: chartTypes.current === 'bar' ? createDynamicBarColors(currentData, threshold) : 'rgba(16, 185, 129, 0.7)',
+                borderColor: chartTypes.current === 'bar' ? createDynamicBarColors(currentData, threshold) : '#10B981',
+                borderWidth: 3,
+                tension: chartTypes.current === 'line' || chartTypes.current === 'area' ? 0.4 : 0,
+                fill: chartTypes.current === 'area',
+                order: 2
+            });
+
+            if (threshold > 0) {
+                let seuilType = 'line';
+                let seuilData = Array(12).fill(threshold);
+                let seuilBackground = 'transparent';
+                let seuilBorderDash = [10, 5];
+                let seuilFill = false;
+
+                if (indicator === 'nombre_reclamations') {
+                    seuilType = 'bar';
+                    seuilData = Array(12).fill(0);
+                    seuilBackground = '#F59E0B';
+                    seuilBorderDash = [];
+                    seuilFill = true;
+                }
+
+                datasets.push({
+                    type: seuilType,
+                    label: 'Seuil',
+                    data: seuilData,
+                    borderColor: '#F59E0B',
+                    backgroundColor: seuilBackground,
+                    borderWidth: 3,
+                    borderDash: seuilBorderDash,
+                    tension: 0,
+                    fill: seuilFill,
+                    pointRadius: 0,
+                    order: 1
+                });
+            }
+        }
+
+        if (yearSelection === `${previousYear}` || yearSelection === 'both') {
+            datasets.push({
+                type: chartTypes.previous === 'area' ? 'line' : chartTypes.previous,
+                label: `${getIndicatorName(indicator)} ${previousYear}`,
+                data: previousData,
+                backgroundColor: chartTypes.previous === 'bar' ? Array(previousData.length).fill('#BFC3C8') : 'rgba(191, 195, 200, 0.3)',
+                borderColor: '#BFC3C8',
+                borderWidth: 3,
+                tension: chartTypes.previous === 'line' || chartTypes.previous === 'area' ? 0.4 : 0,
+                fill: chartTypes.previous === 'area',
+                order: 3
+            });
+
+            if (threshold > 0 && yearSelection === `${previousYear}`) {
+                let seuilType = 'line';
+                let seuilData = Array(12).fill(threshold);
+                let seuilBackground = 'transparent';
+                let seuilBorderDash = [10, 5];
+                let seuilFill = false;
+
+                if (indicator === 'nombre_reclamations') {
+                    seuilType = 'bar';
+                    seuilData = Array(12).fill(0);
+                    seuilBackground = '#F59E0B';
+                    seuilBorderDash = [];
+                    seuilFill = true;
+                }
+
+                datasets.push({
+                    type: seuilType,
+                    label: 'Seuil',
+                    data: seuilData,
+                    borderColor: '#F59E0B',
+                    backgroundColor: seuilBackground,
+                    borderWidth: 3,
+                    borderDash: seuilBorderDash,
+                    tension: 0,
+                    fill: seuilFill,
+                    pointRadius: 0,
+                    order: 1
+                });
+            }
+        }
+
+        // Calculer les YTD et Total
+        function calculateCorrectYTD(monthlyData, rawData, indicator, months) {
+            if (!rawData || !rawData.raw_monthly_data) {
+                console.log(`Fallback YTD pour ${indicator}: somme simple`);
+                return monthlyData.slice(0, months).reduce((sum, val) => sum + val, 0);
+            }
+
+            const isRatioIndicator = ['ppm_officiel', 'ppm_non_officiel', 'taux_rebut', 'taux_retouche'].includes(indicator);
+
+            if (isRatioIndicator) {
+                console.log(`Calcul YTD correct pour indicateur ratio: ${indicator}`);
+                let totalNumerateur = 0;
+                let totalDenominateur = 0;
+
+                for (let month = 1; month <= months; month++) {
+                    const rawMonth = rawData.raw_monthly_data[month];
+                    if (!rawMonth) continue;
+
+                    switch (indicator) {
+                        case 'ppm_officiel':
+                            totalNumerateur += rawMonth.pieces_reclamees || 0;
+                            totalDenominateur += rawMonth.pieces_exportees || 0;
+                            break;
+                        case 'ppm_non_officiel':
+                            totalNumerateur += rawMonth.alertes || 0;
+                            totalDenominateur += rawMonth.pieces_exportees || 0;
+                            break;
+                        case 'taux_rebut':
+                            totalNumerateur += rawMonth.pieces_rebutees || 0;
+                            totalDenominateur += rawMonth.pieces_controlees || 0;
+                            break;
+                        case 'taux_retouche':
+                            totalNumerateur += rawMonth.pieces_retouchees || 0;
+                            totalDenominateur += rawMonth.pieces_controlees || 0;
+                            break;
+                    }
+                }
+
+                if (totalDenominateur === 0) return 0;
+
+                switch (indicator) {
+                    case 'ppm_officiel':
+                    case 'ppm_non_officiel':
+                        return (totalNumerateur / totalDenominateur * 1000000);
+                    case 'taux_rebut':
+                    case 'taux_retouche':
+                        return (totalNumerateur / totalDenominateur * 100);
+                    default:
+                        return 0;
+                }
+            } else {
+                console.log(`Calcul YTD somme pour indicateur absolu: ${indicator}`);
+                return monthlyData.slice(0, months).reduce((sum, val) => sum + val, 0);
+            }
+        }
+
+        let ytdCurrent = 0, ytdPrevious = 0, totalPrevious = 0;
+
+        if (dataCurrent) {
+            ytdCurrent = calculateCorrectYTD(currentData, rawDataCurrent, indicator, currentMonth);
+        }
+        if (dataPrevious) {
+            ytdPrevious = calculateCorrectYTD(previousData, rawDataPrevious, indicator, currentMonth);
+            totalPrevious = calculateCorrectYTD(previousData, rawDataPrevious, indicator, 12);
+        }
+
+        console.log(`YTD CORRIGÉ pour ${indicator}:`);
+        console.log(`- YTD ${currentYear}: ${ytdCurrent}`);
+        console.log(`- YTD ${previousYear}: ${ytdPrevious}`);
+        console.log(`- Total ${previousYear}: ${totalPrevious}`);
+
+        let extendedLabels = months;
+
+        // Ajouter les colonnes YTD et Total selon l'année sélectionnée
+        if (yearSelection === `${currentYear}` || yearSelection === 'both') {
+            extendedLabels = [...months, `YTD ${currentYear}`, `YTD ${previousYear}`, `Total ${previousYear}`];
+            datasets.forEach(dataset => {
+                if (dataset.label.includes(`${currentYear}`)) {
+                    dataset.data = [...dataset.data, 0, 0, 0];
+                } else if (dataset.label.includes(`${previousYear}`)) {
+                    dataset.data = [...dataset.data, 0, 0, 0];
+                } else if (dataset.label === 'Seuil') {
+                    if (indicator === 'nombre_reclamations') {
+                        dataset.data = [...dataset.data, 0, 0, threshold];
+                    } else {
+                        dataset.data = [...dataset.data, null, null, null];
+                    }
+                }
+            });
+
+            datasets.push({
+                type: 'bar',
+                label: `YTD ${currentYear}`,
+                data: [...Array(12).fill(0), ytdCurrent, 0, 0],
+                backgroundColor: '#1E3A8A',
+                borderColor: '#1E3A8A',
+                borderWidth: 1,
+                order: 4
+            });
+
+            datasets.push({
+                type: 'bar',
+                label: `YTD ${previousYear}`,
+                data: [...Array(12).fill(0), 0, ytdPrevious, 0],
+                backgroundColor: '#3B82F6',
+                borderColor: '#3B82F6',
+                borderWidth: 1,
+                order: 5
+            });
+
+            datasets.push({
+                type: 'bar',
+                label: `Total ${previousYear}`,
+                data: [...Array(12).fill(0), 0, 0, totalPrevious],
+                backgroundColor: '#60A5FA',
+                borderColor: '#60A5FA',
+                borderWidth: 1,
+                order: 6
+            });
+        } else if (yearSelection === `${previousYear}`) {
+            extendedLabels = [...months, `YTD ${previousYear}`, `Total ${previousYear}`];
+            datasets.forEach(dataset => {
+                if (dataset.label.includes(`${previousYear}`)) {
+                    dataset.data = [...dataset.data, 0, 0];
+                } else if (dataset.label === 'Seuil') {
+                    if (indicator === 'nombre_reclamations') {
+                        dataset.data = [...dataset.data, 0, threshold];
+                    } else {
+                        dataset.data = [...dataset.data, null, null];
+                    }
+                }
+            });
+
+            datasets.push({
+                type: 'bar',
+                label: `YTD ${previousYear}`,
+                data: [...Array(12).fill(0), ytdPrevious, 0],
+                backgroundColor: '#3B82F6',
+                borderColor: '#3B82F6',
+                borderWidth: 1,
+                order: 5
+            });
+
+            datasets.push({
+                type: 'bar',
+                label: `Total ${previousYear}`,
+                data: [...Array(12).fill(0), 0, totalPrevious],
+                backgroundColor: '#60A5FA',
+                borderColor: '#60A5FA',
+                borderWidth: 1,
+                order: 6
+            });
+        }
+
+        createChart(chartId + 'Chart', {
+            labels: extendedLabels,
+            datasets: datasets
+        }, {
+            indicator: indicator,
+            plugins: {
+                title: {
+                    display: true,
+                    text: `${getIndicatorName(indicator)} - ${atelier}`,
+                    font: { size: 16, weight: 'bold' },
+                    padding: 20
+                },
+                subtitle: {
+                    display: true,
+                    text: yearSelection === 'both' ? `Comparaison ${currentYear} vs ${previousYear} (YTD)` :
+                          yearSelection === `${currentYear}` ? `Données ${currentYear} (YTD )` :
+                          `Données ${previousYear} (YTD et Total)`,
+                    font: { size: 12, style: 'italic' }
+                }
+            },
+            scales: {
+                y: {
+                    title: {
+                        display: true,
+                        text: getIndicatorUnit(indicator)
+                    }
+                }
+            }
+        });
+
+        hideLoading(chartId);
+        console.log(`Graphique ${indicator} créé avec succès (YTD corrigé)`);
+    } catch (error) {
+        console.error(`Erreur ${indicator}:`, error);
+        showError(chartId, error.message);
+    }
+}
+
+// Fonction corrigée pour YTD également
+function displayYTDData(ytdData) {
+    const ytdGrid = document.getElementById('ytdGrid');
+    ytdGrid.innerHTML = '';
+
+    const ateliers = Object.keys(ytdData);
+    ateliers.forEach((atelier, index) => {
+        const data = ytdData[atelier];
+        const col = document.createElement('div');
+        col.className = 'col-lg-3 col-md-6 mb-4';
+        col.setAttribute('data-aos', 'fade-up');
+        col.setAttribute('data-aos-delay', (index * 100).toString());
+        col.innerHTML = `
+            <div class="ytd-card">
+                <div class="ytd-workshop">${atelier}</div>
+                <div class="row mt-3">
+                    <div class="col-6 mb-3">
+                        <div class="ytd-icon ppm"><i class="fas fa-exclamation-triangle"></i></div>
+                        <div class="ytd-value">${(data.ppm_officiel || 0).toFixed(3)}</div>
+                        <div class="ytd-label">PPM Officiel</div>
+                        <small class="text-muted">YTD Cumulé</small>
+                    </div>
+                    <div class="col-6 mb-3">
+                        <div class="ytd-icon ppm"><i class="fas fa-bell"></i></div>
+                        <div class="ytd-value">${(data.ppm_non_officiel || 0).toFixed(3)}</div>
+                        <div class="ytd-label">PPM Non Officiel</div>
+                        <small class="text-muted">YTD Cumulé</small>
+                    </div>
+                    <div class="col-6 mb-3">
+                        <div class="ytd-icon rate"><i class="fas fa-trash"></i></div>
+                        <div class="ytd-value">${(data.taux_rebut || 0).toFixed(3)}%</div>
+                        <div class="ytd-label">Taux Rebut</div>
+                        <small class="text-muted">YTD Cumulé</small>
+                    </div>
+                    <div class="col-6 mb-3">
+                        <div class="ytd-icon rate"><i class="fas fa-tools"></i></div>
+                        <div class="ytd-value">${(data.taux_retouche || 0).toFixed(3)}%</div>
+                        <div class="ytd-label">Taux Retouche</div>
+                        <small class="text-muted">YTD Cumulé</small>
+                    </div>
+                    <div class="col-6 mb-3">
+                        <div class="ytd-icon cost"><i class="fas fa-lira-sign"></i></div>
+                        <div class="ytd-value">${(data.cout_rebut || 0).toFixed(3)} TND</div>
+                        <div class="ytd-label">Coût Rebut</div>
+                        <small class="text-muted">YTD Somme</small>
+                    </div>
+                    <div class="col-6 mb-3">
+                        <div class="ytd-icon quality"><i class="fas fa-award"></i></div>
+                        <div class="ytd-value">${(data.cnq || 0)}%</div>
+                        <div class="ytd-label">Taux de Non-Qualité</div>
+                        <small class="text-muted">YTD Moyenne</small>
+                    </div>
+                    <div class="col-6 mb-3">
+                        <div class="ytd-icon reclamations"><i class="fas fa-file-invoice"></i></div>
+                        <div class="ytd-value">${(data.nombre_reclamations || 0)}</div>
+                        <div class="ytd-label">Réclamations</div>
+                        <small class="text-muted">YTD Somme</small>
+                    </div>
+                </div>
+            </div>
+        `;
+        ytdGrid.appendChild(col);
+    });
+
+    AOS.refresh();
+}
+
+        function loadCharts() {
+            const atelier = document.getElementById('atelierSelect').value;
+            const indicators = ['ppm_officiel', 'ppm_non_officiel', 'taux_rebut', 'taux_retouche', 'cout_rebut', 'nombre_reclamations'];
+            
+            indicators.forEach(indicator => {
+                const chartId = indicator === 'ppm_officiel' ? 'ppmOfficiel' :
+                                indicator === 'ppm_non_officiel' ? 'ppmNonOfficiel' :
+                                indicator === 'taux_rebut' ? 'tauxRebut' :
+                                indicator === 'taux_retouche' ? 'tauxRetouche' :
+                                indicator === 'cout_rebut' ? 'coutRebut' :
+                                'reclamations';
+                analyzeIndicator(indicator, chartId);
+            });
+            
+            const cnqContainer = document.getElementById('cnqContainer');
+            if (atelier === 'Total') {
+                cnqContainer.style.display = 'block';
+                setTimeout(() => {
+                    analyzeIndicator('cnq', 'cnq');
+                }, 100);
+            } else {
+                cnqContainer.style.display = 'none';
+            }
+        }
+
+        function loadYTDData() {
+            const currentYear = new Date().getFullYear();
+            let apiUrl = `/api/ytd_data?annee=${currentYear}`;
+            const atelier = document.getElementById('atelierSelect').value;
+            
+            if (atelier === 'UAP1') {
+                apiUrl = `/api/ytd_data?atelier=Protections thermiques,Isolant souple&annee=${currentYear}&aggregate=sum`;
+            } else if (atelier === 'UAP2') {
+                apiUrl = `/api/ytd_data?atelier=Manchons,Colliers,Racks,Moulage,Composite,Système de visualisation&annee=${currentYear}&aggregate=sum`;
+            } else if (atelier === 'Total') {
+                apiUrl = `/api/ytd_data?annee=${currentYear}&aggregate=total`;
+            } else {
+                apiUrl = `/api/ytd_data?atelier=${encodeURIComponent(atelier)}&annee=${currentYear}`;
+            }
+
+            fetch(apiUrl)
+                .then(response => response.json())
+                .then(data => displayYTDData(data.ytd_data))
+                .catch(error => {
+                    console.error('Erreur YTD:', error);
+                    displayEmptyYTD();
+                });
+        }
+
+        function displayYTDData(ytdData) {
+            const ytdGrid = document.getElementById('ytdGrid');
+            ytdGrid.innerHTML = '';
+
+            const ateliers = Object.keys(ytdData);
+            ateliers.forEach((atelier, index) => {
+                const data = ytdData[atelier];
+                const col = document.createElement('div');
+                col.className = 'col-lg-3 col-md-6 mb-4';
+                col.setAttribute('data-aos', 'fade-up');
+                col.setAttribute('data-aos-delay', (index * 100).toString());
+                col.innerHTML = `
+                    <div class="ytd-card">
+                        <div class="ytd-workshop">${atelier}</div>
+                        <div class="row mt-3">
+                            <div class="col-6 mb-3">
+                                <div class="ytd-icon ppm"><i class="fas fa-exclamation-triangle"></i></div>
+                                <div class="ytd-value">${formatValue(data.ppm_officiel || 0, 'ppm')}</div>
+                                <div class="ytd-label">PPM Officiel</div>
+                            </div>
+                            <div class="col-6 mb-3">
+                                <div class="ytd-icon ppm"><i class="fas fa-bell"></i></div>
+                                <div class="ytd-value">${formatValue(data.ppm_non_officiel || 0, 'ppm')}</div>
+                                <div class="ytd-label">PPM Non Officiel</div>
+                            </div>
+                            <div class="col-6 mb-3">
+                                <div class="ytd-icon rate"><i class="fas fa-trash"></i></div>
+                                <div class="ytd-value">${formatValue(data.taux_rebut || 0, 'taux')}%</div>
+                                <div class="ytd-label">Taux Rebut</div>
+                            </div>
+                            <div class="col-6 mb-3">
+                                <div class="ytd-icon rate"><i class="fas fa-tools"></i></div>
+                                <div class="ytd-value">${formatValue(data.taux_retouche || 0, 'taux')}%</div>
+                                <div class="ytd-label">Taux Retouche</div>
+                            </div>
+                            <div class="col-6 mb-3">
+                                <div class="ytd-icon cost"><i class="fas fa-lira-sign"></i></div>
+                                <div class="ytd-value">${formatValue(data.cout_rebut || 0, 'cout')} TND</div>
+                                <div class="ytd-label">Coût Rebut</div>
+                            </div>
+                            <div class="col-6 mb-3">
+                                <div class="ytd-icon quality"><i class="fas fa-award"></i></div>
+                                <div class="ytd-value">${formatValue(data.cnq || 0, 'taux')}%</div>
+                                <div class="ytd-label">Taux de Non-Qualité</div>
+                            </div>
+                            <div class="col-6 mb-3">
+                                <div class="ytd-icon reclamations"><i class="fas fa-file-invoice"></i></div>
+                                <div class="ytd-value">${formatValue(data.nombre_reclamations || 0, 'other')}</div>
+                                <div class="ytd-label">Réclamations</div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                ytdGrid.appendChild(col);
+            });
+
+            AOS.refresh();
+        }
+
+function displayEmptyYTD() {
+    const ateliers = ['Manchons', 'Colliers', 'Racks', 'Moulage',
+                     'Protections thermiques', 'Isolant souple', 'Composite',
+                     'Système de visualisation', 'UAP1', 'UAP2', 'Total'];
+    
+    const ytdGrid = document.getElementById('ytdGrid');
+    ytdGrid.innerHTML = '';
+    
+    ateliers.forEach((atelier, index) => {
+        const col = document.createElement('div');
+        col.className = 'col-lg-3 col-md-6 mb-4';
+        col.setAttribute('data-aos', 'fade-up');
+        col.setAttribute('data-aos-delay', (index * 100).toString());
+        col.innerHTML = `
+            <div class="ytd-card">
+                <div class="ytd-workshop">${atelier}</div>
+                <div class="row mt-3">
+                    <div class="col-6 mb-3">
+                        <div class="ytd-icon ppm"><i class="fas fa-exclamation-triangle"></i></div>
+                        <div class="ytd-value">0.000</div>
+                        <div class="ytd-label">PPM Officiel</div>
+                    </div>
+                    <div class="col-6 mb-3">
+                        <div class="ytd-icon ppm"><i class="fas fa-bell"></i></div>
+                        <div class="ytd-value">0.000</div>
+                        <div class="ytd-label">PPM Non Officiel</div>
+                    </div>
+                    <div class="col-6 mb-3">
+                        <div class="ytd-icon rate"><i class="fas fa-trash"></i></div>
+                        <div class="ytd-value">0.000%</div>
+                        <div class="ytd-label">Taux Rebut</div>
+                    </div>
+                    <div class="col-6 mb-3">
+                        <div class="ytd-icon rate"><i class="fas fa-tools"></i></div>
+                        <div class="ytd-value">0.000%</div>
+                        <div class="ytd-label">Taux Retouche</div>
+                    </div>
+                    <div class="col-6 mb-3">
+                        <div class="ytd-icon cost"><i class="fas fa-lira-sign"></i></div>
+                        <div class="ytd-value">0.000 TND</div>
+                        <div class="ytd-label">Coût Rebut</div>
+                    </div>
+                    <div class="col-6 mb-3">
+                        <div class="ytd-icon quality"><i class="fas fa-award"></i></div>
+                        <div class="ytd-value">0.000%</div>
+                        <div class="ytd-label">Taux de Non-Qualité</div>
+                    </div>
+                    <div class="col-6 mb-3">
+                        <div class="ytd-icon reclamations"><i class="fas fa-file-invoice"></i></div>
+                        <div class="ytd-value">0.000</div>
+                        <div class="ytd-label">Réclamations</div>
+                    </div>
+                </div>
+            </div>
+        `;
+        ytdGrid.appendChild(col);
+    });
+    
+    AOS.refresh();
+}
+
+        async function loadConformityData() {
+            const atelier = document.getElementById('atelierSelect').value;
+            const conformityContent = document.getElementById('conformityContent');
+            const currentYear = new Date().getFullYear();
+            
+            if (!atelier) {
+                conformityContent.innerHTML = '<p class="text-muted">Sélectionnez un atelier pour voir l\'état de conformité.</p>';
+                return;
+            }
+
+            try {
+                let apiUrl = `/api/charts_data?atelier=${encodeURIComponent(atelier)}&annee=${currentYear}`;
+                
+                if (atelier === 'UAP1') {
+                    apiUrl = `/api/charts_data?atelier=Protections thermiques,Isolant souple&annee=${currentYear}&aggregate=sum`;
+                } else if (atelier === 'UAP2') {
+                    apiUrl = `/api/charts_data?atelier=Manchons,Colliers,Racks,Moulage,Composite,Système de visualisation&annee=${currentYear}&aggregate=sum`;
+                } else if (atelier === 'Total') {
+                    apiUrl = `/api/charts_data?annee=${currentYear}&aggregate=total`;
+                }
+
+                const response = await fetch(apiUrl);
+                if (!response.ok) throw new Error(`Erreur API: ${response.status}`);
+                const data = await response.json();
+
+                displayConformityTable(data, atelier);
+            } catch (error) {
+                console.error('Erreur conformité:', error);
+                conformityContent.innerHTML = '<p class="text-danger">Erreur lors du chargement des données de conformité.</p>';
+            }
+        }
+
+      function displayConformityTable(data, atelier) {
+    const conformityContent = document.getElementById('conformityContent');
+    const currentMonth = new Date().getMonth() + 1;
+    const months = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Jun', 'Jul', 'Aoû', 'Sep', 'Oct', 'Nov', 'Déc'];
+    const currentYear = new Date().getFullYear();
+    
+    const indicators = [
+        { key: 'ppm_officiel', name: 'PPM Officiel' },
+        { key: 'ppm_non_officiel', name: 'PPM Non Officiel' },
+        { key: 'taux_rebut', name: 'Taux de Rebut' },
+        { key: 'taux_retouche', name: 'Taux de Retouche' },
+        { key: 'cout_rebut', name: 'Coût de Rebut' },
+        { key: 'cnq', name: 'CNQ' },
+        { key: 'nombre_reclamations', name: 'Réclamations' }
+    ];
+
+    let tableHTML = `
+        <h5>Atelier: <strong>${atelier}</strong></h5>
+        <div class="table-responsive">
+            <table class="conformity-table">
+                <thead>
+                    <tr>
+                        <th>Indicateur</th>
+                        <th>Seuil</th>
+    `;
+
+    for (let i = 0; i < currentMonth; i++) {
+        tableHTML += `<th>${months[i]}</th>`;
+    }
+    tableHTML += `</tr></thead><tbody>`;
+
+    indicators.forEach(indicator => {
+        if (indicator.key === 'cnq' && atelier !== 'Total') return;
+        
+        const threshold = data.seuils[indicator.key] || 0;
+        tableHTML += `
+            <tr>
+                <td><strong>${indicator.name}</strong></td>
+                <td>${parseFloat(threshold).toFixed(3)}</td>
+        `;
+
+        for (let month = 1; month <= currentMonth; month++) {
+            const value = data.monthly_data[month][indicator.key] || 0;
+            const status = value <= threshold ? 'conforme' : 'non-conforme';
+            let unit = getIndicatorUnit(indicator.key).replace('Pourcentage ', '');
+            tableHTML += `
+                <td>
+                    <span class="conformity-status ${status}">
+                        ${parseFloat(value).toFixed(3)} ${unit}
+                    </span>
+                </td>
+            `;
+        }
+        tableHTML += `</tr>`;
+    });
+
+    tableHTML += `</tbody></table></div>`;
+    conformityContent.innerHTML = tableHTML;
+}
+
+        function toggleYTD() {
+            const ytdGrid = document.getElementById('ytdGrid');
+            const btn = document.querySelector('.btn-toggle-ytd');
+            if (ytdGrid.style.display === 'none') {
+                ytdGrid.style.display = 'block';
+                btn.innerHTML = '<i class="fas fa-eye-slash me-2"></i>Masquer YTD';
+                loadYTDData();
+            } else {
+                ytdGrid.style.display = 'none';
+                btn.innerHTML = '<i class="fas fa-eye me-2"></i>Afficher YTD';
+            }
+            AOS.refresh();
+        }
+
+        function refreshData() {
+            loadCharts();
+            loadYTDData();
+            loadConformityData();
+        }
+
+        function logout() {
+            window.location.href = '/logout';
+        }
+
+        document.getElementById('sidebarToggle').addEventListener('click', () => {
+            const sidebar = document.getElementById('sidebar');
+            const mainContent = document.getElementById('mainContent');
+            sidebar.classList.toggle('collapsed');
+            mainContent.classList.toggle('expanded');
+        });
+    </script>
+</body>
+</html>

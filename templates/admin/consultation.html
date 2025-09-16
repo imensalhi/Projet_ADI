@@ -1,0 +1,957 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Consultation des Données - ADI Quality</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>✈️</text></svg>">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <!-- Ajouter SheetJS et FileSaver.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+    <style>
+        :root {
+            --primary-red: #DC2626;
+            --navy-blue: #1E3A8A;
+            --white: #FFFFFF;
+            --light-gray: #F8FAFC;
+            --dark-gray: #334155;
+            --success-green: #10B981;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, var(--light-gray), #E2E8F0);
+            min-height: 100vh;
+        }
+
+        .container-fluid {
+            padding: 2rem;
+        }
+
+        .page-header {
+            background: white;
+            border-radius: 20px;
+            padding: 2rem;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+            border-left: 5px solid var(--navy-blue);
+        }
+
+        .page-title {
+            color: var(--navy-blue);
+            font-weight: 700;
+            margin: 0;
+        }
+
+        .page-subtitle {
+            color: var(--dark-gray);
+            margin: 0;
+            opacity: 0.8;
+        }
+
+        .filter-container {
+            background: white;
+            border-radius: 20px;
+            padding: 2rem;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+            border-left: 5px solid var(--primary-red);
+        }
+
+        .results-container {
+            background: white;
+            border-radius: 20px;
+            padding: 2rem;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+            display: none;
+        }
+
+        .form-control, .form-select {
+            border-radius: 15px;
+            border: 2px solid #E2E8F0;
+            padding: 0.75rem 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .form-control:focus, .form-select:focus {
+            border-color: var(--navy-blue);
+            box-shadow: 0 0 0 0.2rem rgba(30, 58, 138, 0.25);
+        }
+
+        .btn-search {
+            background: linear-gradient(135deg, var(--navy-blue), var(--primary-red));
+            border: none;
+            border-radius: 15px;
+            padding: 0.75rem 2rem;
+            font-weight: 600;
+            color: white;
+            transition: all 0.3s ease;
+        }
+
+        .btn-search:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(30, 58, 138, 0.4);
+            color: white;
+        }
+
+        .btn-export {
+            background: var(--success-green);
+            border: none;
+            border-radius: 15px;
+            padding: 0.75rem 2rem;
+            font-weight: 600;
+            color: white;
+            transition: all 0.3s ease;
+        }
+
+        .btn-export:hover {
+            background: #059669;
+            transform: translateY(-2px);
+            color: white;
+        }
+
+        .data-card {
+            background: white;
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+            border-left: 4px solid var(--navy-blue);
+            transition: transform 0.3s ease;
+        }
+
+        .data-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .data-value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: var(--navy-blue);
+        }
+
+        .data-label {
+            color: var(--dark-gray);
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .indicator-card {
+            background: linear-gradient(135deg, rgba(30, 58, 138, 0.1), rgba(220, 38, 38, 0.1));
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            border: 2px solid transparent;
+            transition: all 0.3s ease;
+        }
+
+        .indicator-card.alert-danger {
+            border-color: var(--primary-red);
+            background: linear-gradient(135deg, rgba(220, 38, 38, 0.1), rgba(239, 68, 68, 0.1));
+        }
+
+        .indicator-card.alert-warning {
+            border-color: #F59E0B;
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.1), rgba(251, 191, 36, 0.1));
+        }
+
+        .indicator-card.alert-success {
+            border-color: var(--success-green);
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(52, 211, 153, 0.1));
+        }
+
+        .threshold-info {
+            font-size: 0.8rem;
+            color: var(--dark-gray);
+            opacity: 0.8;
+        }
+
+        .section-title {
+            color: var(--navy-blue);
+            font-weight: 700;
+            font-size: 1.3rem;
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid #E2E8F0;
+            position: relative;
+        }
+
+        .section-title::before {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            width: 50px;
+            height: 2px;
+            background: var(--primary-red);
+        }
+
+        .loading-spinner {
+            display: none;
+            text-align: center;
+            padding: 2rem;
+        }
+
+        .no-data {
+            text-align: center;
+            padding: 3rem;
+            color: var(--dark-gray);
+        }
+
+        .table {
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        }
+
+        .table thead th {
+            background: var(--navy-blue);
+            color: white;
+            font-weight: 600;
+            border: none;
+            padding: 1rem;
+        }
+
+        .table tbody td {
+            padding: 1rem;
+            border-color: #E2E8F0;
+        }
+
+        .table tbody tr:hover {
+            background-color: rgba(30, 58, 138, 0.05);
+        }
+
+        .alert {
+            border-radius: 15px;
+            border: none;
+            padding: 1rem 1.5rem;
+        }
+
+        @media (max-width: 768px) {
+            .container-fluid {
+                padding: 1rem;
+            }
+            
+            .data-card {
+                margin-bottom: 1rem;
+            }
+            
+            .btn-search, .btn-export {
+                width: 100%;
+                margin-bottom: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <!-- Page Header -->
+        <div class="page-header">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="page-title">
+                        <i class="fas fa-chart-line me-2"></i>
+                        Consultation des Données Qualité
+                    </h1>
+                    <p class="page-subtitle">
+                        Visualisation et analyse des données de performance par atelier
+                    </p>
+                </div>
+                <a href="/dashboard" class="btn btn-outline-primary">
+                    <i class="fas fa-arrow-left me-2"></i>
+                    Retour
+                </a>
+            </div>
+        </div>
+
+        <!-- Flash Messages -->
+        <div id="flashMessages"></div>
+
+        <!-- Filtres -->
+        <div class="filter-container">
+            <h3 class="section-title">
+                <i class="fas fa-filter me-2"></i>
+                Critères de Recherche
+            </h3>
+            
+            <form id="searchForm">
+                <div class="row">
+                    <div class="col-md-4">
+                        <label for="atelier" class="form-label">Atelier / UAP</label>
+                        <select class="form-select" id="atelier" name="atelier" required>
+                            <option value="">Sélectionner...</option>
+                            <option value="Manchons">Manchons</option>
+                            <option value="Colliers">Colliers</option>
+                            <option value="Racks">Racks</option>
+                            <option value="Moulage">Moulage</option>
+                            <option value="Protections thermiques">Protections thermiques</option>
+                            <option value="Isolant souple">Isolant souple</option>
+                            <option value="Composite">Composite</option>
+                            <option value="Système de visualisation">Système de visualisation</option>
+                            <option value="UAP1">UAP1 (Protections thermiques + Isolant souple)</option>
+                            <option value="UAP2">UAP2 (Autres ateliers)</option>
+                            <option value="Total">Total (Usine Complète)</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label for="mois" class="form-label">Mois</label>
+                        <select class="form-select" id="mois" name="mois" required>
+                            <option value="">Sélectionner le mois</option>
+                            <option value="1">Janvier</option>
+                            <option value="2">Février</option>
+                            <option value="3">Mars</option>
+                            <option value="4">Avril</option>
+                            <option value="5">Mai</option>
+                            <option value="6">Juin</option>
+                            <option value="7">Juillet</option>
+                            <option value="8">Août</option>
+                            <option value="9">Septembre</option>
+                            <option value="10">Octobre</option>
+                            <option value="11">Novembre</option>
+                            <option value="12">Décembre</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label for="annee" class="form-label">Année</label>
+                        <select class="form-select" id="annee" name="annee" required>
+                            <!-- Sera rempli dynamiquement -->
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="row mt-3">
+                    <div class="col-12 text-end">
+                        <button type="submit" class="btn btn-search">
+                            <i class="fas fa-search me-2"></i>
+                            Rechercher
+                        </button>
+                        <button type="button" class="btn btn-export ms-2" id="exportBtn" style="display: none;">
+                            <i class="fas fa-file-excel me-2"></i>
+                            Exporter Excel
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <!-- Loading Spinner -->
+        <div class="loading-spinner" id="loadingSpinner">
+            <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;" role="status">
+                <span class="visually-hidden">Chargement...</span>
+            </div>
+            <p class="mt-2">Chargement des données...</p>
+        </div>
+
+        <!-- Résultats -->
+        <div class="results-container" id="resultsContainer">
+            <!-- Données brutes -->
+            <div class="mb-4">
+                <h3 class="section-title">
+                    <i class="fas fa-database me-2"></i>
+                    Données Brutes
+                </h3>
+                <div class="row" id="rawDataContainer">
+                    <!-- Les données brutes seront insérées ici -->
+                </div>
+            </div>
+
+            <!-- Indicateurs calculés -->
+            <div class="mb-4">
+                <h3 class="section-title">
+                    <i class="fas fa-calculator me-2"></i>
+                    Indicateurs de Performance
+                </h3>
+                <div class="row" id="indicatorsContainer">
+                    <!-- Les indicateurs seront insérés ici -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Message aucune donnée -->
+        <div class="no-data" id="noDataMessage" style="display: none;">
+            <i class="fas fa-inbox fa-3x mb-3 text-muted"></i>
+            <h4>Aucune donnée trouvée</h4>
+            <p>Aucune donnée ne correspond aux critères sélectionnés. Veuillez modifier vos filtres et réessayer.</p>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        // Variables globales
+        let currentData = null;
+        const monthNames = ['', 'Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin',
+                           'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'];
+
+        // Initialiser les années dynamiquement (année actuelle et années précédentes)
+        function initializeYears() {
+            const currentYear = new Date().getFullYear();
+            const yearSelect = document.getElementById('annee');
+            
+            // Ajouter les 3 dernières années (année actuelle et 2 précédentes)
+            for (let year = currentYear; year >= currentYear - 2; year--) {
+                const option = document.createElement('option');
+                option.value = year;
+                option.textContent = year;
+                yearSelect.appendChild(option);
+            }
+            
+            // Sélectionner l'année actuelle par défaut
+            yearSelect.value = currentYear;
+        }
+
+        // Set default values
+        function setDefaultValues() {
+            const currentMonth = new Date().getMonth() + 1;
+            document.getElementById('mois').value = currentMonth;
+        }
+
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeYears();
+            setDefaultValues();
+        });
+
+        // Form submission
+        document.getElementById('searchForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            searchData();
+        });
+
+        // Export button
+        document.getElementById('exportBtn').addEventListener('click', function() {
+            exportToExcel();
+        });
+
+        async function searchData() {
+            const formData = new FormData(document.getElementById('searchForm'));
+            const atelier = formData.get('atelier');
+            const mois = formData.get('mois');
+            const annee = formData.get('annee');
+
+            if (!atelier || !mois || !annee) {
+                showAlert('Veuillez remplir tous les champs obligatoires', 'warning');
+                return;
+            }
+
+            // Show loading
+            showLoading(true);
+            hideResults();
+
+            try {
+                // Utiliser l'API search_data pour récupérer les données
+                const response = await fetch(`/api/search_data?atelier=${encodeURIComponent(atelier)}&mois=${mois}&annee=${annee}`);
+                
+                if (!response.ok) {
+                    throw new Error('Erreur lors de la récupération des données');
+                }
+
+                const data = await response.json();
+                currentData = data;
+                
+                console.log('Données reçues:', data);
+                
+                // Vérifier si des données existent
+                if (hasData(data)) {
+                    displayResults(data, atelier, parseInt(mois), parseInt(annee));
+                } else {
+                    showNoData();
+                }
+
+            } catch (error) {
+                console.error('Erreur:', error);
+                showAlert('Erreur lors de la récupération des données: ' + error.message, 'danger');
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        function hasData(data) {
+            // Vérifier si au moins une table contient des données
+            const tables = ['pieces_retouchees', 'pieces_rebutees', 'pieces_controlees', 
+                          'cout_rebut', 'cnq', 'pieces_reclamees', 'pieces_exportees', 
+                          'quantite_alertes', 'reclamations_officielles'];
+            
+            for (let table of tables) {
+                if (data[table]) {
+                    if (data.query_info && data.query_info.is_aggregate) {
+                        if (data[table].total && data[table].total > 0) {
+                            return true;
+                        }
+                    } else {
+                        if (Array.isArray(data[table]) && data[table].length > 0) {
+                            return true;
+                        }
+                    }
+                }
+            }
+            return false;
+        }
+
+        function displayResults(data, atelier, mois, annee) {
+            const resultsContainer = document.getElementById('resultsContainer');
+            const rawDataContainer = document.getElementById('rawDataContainer');
+            const indicatorsContainer = document.getElementById('indicatorsContainer');
+            const exportBtn = document.getElementById('exportBtn');
+
+            // Clear previous results
+            rawDataContainer.innerHTML = '';
+            indicatorsContainer.innerHTML = '';
+
+            // Extraire les données selon le type (aggregate ou détaillé)
+            const isAggregate = data.query_info && data.query_info.is_aggregate;
+            
+            let rawData = {};
+            
+            if (isAggregate) {
+                // Pour les données agrégées (UAP1, UAP2, Total)
+                rawData = {
+                    pieces_exportees: data.pieces_exportees?.total || 0,
+                    pieces_controlees: data.pieces_controlees?.total || 0,
+                    pieces_reclamees: data.pieces_reclamees?.total || 0,
+                    pieces_retouchees: data.pieces_retouchees?.total || 0,
+                    pieces_rebutees: data.pieces_rebutees?.total || 0,
+                    quantite_alertes: data.quantite_alertes?.total || 0,
+                    cout_rebut: data.cout_rebut?.total || 0,
+                    cnq: atelier === 'Total' ? (data.cnq?.total || 0) : 0,
+                    reclamations_officielles: data.reclamations_officielles?.total || 0
+                };
+            } else {
+                // Pour les ateliers spécifiques, sommer les données s'il y en a plusieurs
+                const tables = ['pieces_exportees', 'pieces_controlees', 'pieces_reclamees', 
+                              'pieces_retouchees', 'pieces_rebutees', 'quantite_alertes', 
+                              'cout_rebut', 'cnq', 'reclamations_officielles'];
+                
+                tables.forEach(table => {
+                    rawData[table] = 0;
+                    if (data[table] && Array.isArray(data[table])) {
+                        data[table].forEach(row => {
+                            const field = getFieldName(table);
+                            rawData[table] += parseFloat(row[field]) || 0;
+                        });
+                    }
+                });
+                // CNQ seulement pour Total
+                rawData.cnq = atelier === 'Total' ? rawData.cnq : 0;
+            }
+
+            console.log('Données extraites:', rawData);
+
+            // Calculer les indicateurs selon les formules fournies
+            const pieces_exportees = rawData.pieces_exportees || 0;
+            const pieces_controlees = rawData.pieces_controlees || 0;
+            const pieces_reclamees = rawData.pieces_reclamees || 0;
+            const pieces_retouchees = rawData.pieces_retouchees || 0;
+            const pieces_rebutees = rawData.pieces_rebutees || 0;
+            const alertes = rawData.quantite_alertes || 0;
+
+            const indicators = {
+                ppm_officiel: pieces_exportees > 0 ? (pieces_reclamees / pieces_exportees * 1000000) : 0,
+                ppm_non_officiel: pieces_exportees > 0 ? (alertes / pieces_exportees * 1000000) : 0,
+                taux_retouche: pieces_controlees > 0 ? (pieces_retouchees / pieces_controlees * 100) : 0,
+                taux_rebut: pieces_controlees > 0 ? (pieces_rebutees / pieces_controlees * 100) : 0,
+                cout_rebut: rawData.cout_rebut || 0,
+                cnq: rawData.cnq || 0,
+                nb_reclamations: rawData.reclamations_officielles || 0
+            };
+
+            console.log('Indicateurs calculés:', indicators);
+
+            // Display raw data
+            const rawDataItems = [
+                { label: 'Pièces Exportées', value: pieces_exportees, unit: 'pièces', icon: 'fas fa-shipping-fast' },
+                { label: 'Pièces Contrôlées', value: pieces_controlees, unit: 'pièces', icon: 'fas fa-check-circle' },
+                { label: 'Pièces Réclamées', value: pieces_reclamees, unit: 'pièces', icon: 'fas fa-exclamation-triangle' },
+                { label: 'Pièces Retouchées', value: pieces_retouchees, unit: 'pièces', icon: 'fas fa-tools' },
+                { label: 'Pièces Rebutées', value: pieces_rebutees, unit: 'pièces', icon: 'fas fa-trash' },
+                { label: 'Quantité d\'Alertes', value: alertes, unit: 'alertes', icon: 'fas fa-bell' },
+                { label: 'Coût du Rebut', value: rawData.cout_rebut, unit: 'TND', icon: 'fas fa-money-bill' },
+                { label: 'CNQ', value: rawData.cnq, unit: 'TND', icon: 'fas fa-chart-bar' },
+                { label: 'Réclamations Officielles', value: rawData.reclamations_officielles, unit: 'réclamations', icon: 'fas fa-file-alt' }
+            ];
+
+            rawDataItems.forEach(item => {
+                const col = document.createElement('div');
+                col.className = 'col-lg-4 col-md-6 mb-3';
+                col.innerHTML = `
+                    <div class="data-card">
+                        <div class="d-flex align-items-center">
+                            <div class="me-3">
+                                <i class="${item.icon} fa-2x text-primary"></i>
+                            </div>
+                            <div>
+                                <div class="data-value">${formatNumber(item.value)}</div>
+                                <div class="data-label">${item.label}</div>
+                                <small class="text-muted">${item.unit}</small>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                rawDataContainer.appendChild(col);
+            });
+
+            // Utiliser les seuils dynamiques depuis la table seuils et cnq
+            const seuils = data.seuils || {};
+            
+            const indicatorItems = [
+                { 
+                    label: 'PPM Officiel', 
+                    value: indicators.ppm_officiel, 
+                    threshold: seuils['PPM Officiel'] || 100, // Valeur par défaut si seuil non trouvé
+                    unit: 'PPM',
+                    icon: 'fas fa-exclamation-circle'
+                },
+                { 
+                    label: 'PPM Non Officiel', 
+                    value: indicators.ppm_non_officiel, 
+                    threshold: seuils['PPM Non Officiel'] || 500,
+                    unit: 'PPM',
+                    icon: 'fas fa-warning'
+                },
+                { 
+                    label: 'Taux de Retouche', 
+                    value: indicators.taux_retouche, 
+                    threshold: seuils['Taux de Retouche'] || 5,
+                    unit: '%',
+                    icon: 'fas fa-redo'
+                },
+                { 
+                    label: 'Taux de Rebut', 
+                    value: indicators.taux_rebut, 
+                    threshold: seuils['Taux de Rebut'] || 2,
+                    unit: '%',
+                    icon: 'fas fa-times-circle'
+                },
+                { 
+                    label: 'Coût de Rebut', 
+                    value: indicators.cout_rebut, 
+                    threshold: seuils['Coût de Rebut'] || 500,
+                    unit: 'TND',
+                    icon: 'fas fa-money-bill-wave'
+                },
+                { 
+                    label: 'CNQ', 
+                    value: indicators.cnq, 
+                    threshold: seuils['CNQ'] || 1000,
+                    unit: 'TND',
+                    icon: 'fas fa-chart-line'
+                },
+                { 
+                    label: 'Nombre de reclamation', 
+                    value: indicators.nb_reclamations, 
+                    threshold: seuils['Nombre de reclamation'] || 5,
+                    unit: 'réclamations',
+                    icon: 'fas fa-file-alt'
+                }
+            ];
+
+            indicatorItems.forEach(indicator => {
+                // Skip CNQ display if not Total
+                if (indicator.label === 'CNQ' && atelier !== 'Total') return;
+
+                const alertClass = getAlertClass(indicator.value, indicator.threshold, indicator.label);
+                const col = document.createElement('div');
+                col.className = 'col-lg-4 col-md-6 mb-3';
+                col.innerHTML = `
+                    <div class="indicator-card ${alertClass}">
+                        <div class="d-flex align-items-center justify-content-between">
+                            <div>
+                                <div class="data-value">${formatNumber(indicator.value)}</div>
+                                <div class="data-label">${indicator.label}</div>
+                                <div class="threshold-info">Seuil: ${formatNumber(indicator.threshold)} ${indicator.unit}</div>
+                                <div class="threshold-info">
+                                    ${indicator.value > indicator.threshold ? 
+                                        `<span class="text-danger">⚠️ Seuil dépassé de ${formatNumber(indicator.value - indicator.threshold)} ${indicator.unit}</span>` : 
+                                        `<span class="text-success">✅ Dans les limites</span>`
+                                    }
+                                </div>
+                            </div>
+                            <div>
+                                <i class="${indicator.icon} fa-2x ${getIconColor(alertClass)}"></i>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                indicatorsContainer.appendChild(col);
+            });
+
+            // Show results and export button
+            resultsContainer.style.display = 'block';
+            exportBtn.style.display = 'inline-block';
+        }
+
+        function getFieldName(table) {
+            const fieldMap = {
+                'pieces_retouchees': 'quantite',
+                'pieces_rebutees': 'quantite',
+                'pieces_controlees': 'quantite',
+                'cout_rebut': 'montant',
+                'cnq': 'valeur',
+                'pieces_reclamees': 'quantite',
+                'pieces_exportees': 'quantite',
+                'quantite_alertes': 'nombre_alertes',
+                'reclamations_officielles': 'nombre'
+            };
+            return fieldMap[table] || 'quantite';
+        }
+
+        function getAlertClass(value, threshold, label) {
+            if (label.includes('Coût') || label.includes('CNQ') || label.includes('PPM') || label.includes('Taux') || label.includes('Nombre')) {
+                // Pour tous les indicateurs, plus c'est élevé, plus c'est mauvais
+                if (value > threshold * 2) return 'alert-danger';
+                if (value > threshold) return 'alert-warning';
+                return 'alert-success';
+            } else {
+                // Cas par défaut
+                if (value > threshold * 2) return 'alert-danger';
+                if (value > threshold) return 'alert-warning';
+                return 'alert-success';
+            }
+        }
+
+        function getIconColor(alertClass) {
+            switch (alertClass) {
+                case 'alert-danger': return 'text-danger';
+                case 'alert-warning': return 'text-warning';
+                case 'alert-success': return 'text-success';
+                default: return 'text-primary';
+            }
+        }
+
+        function formatNumber(num) {
+            if (num === null || num === undefined || isNaN(num)) return '0';
+            return Number(num).toLocaleString('fr-FR', {
+                minimumFractionDigits: 0,
+                maximumFractionDigits: 2
+            });
+        }
+
+        function showLoading(show) {
+            const spinner = document.getElementById('loadingSpinner');
+            spinner.style.display = show ? 'block' : 'none';
+        }
+
+        function hideResults() {
+            document.getElementById('resultsContainer').style.display = 'none';
+            document.getElementById('noDataMessage').style.display = 'none';
+            document.getElementById('exportBtn').style.display = 'none';
+        }
+
+        function showNoData() {
+            document.getElementById('noDataMessage').style.display = 'block';
+        }
+
+        function showAlert(message, type) {
+            const flashContainer = document.getElementById('flashMessages');
+            const alert = document.createElement('div');
+            alert.className = `alert alert-${type} alert-dismissible fade show`;
+            alert.innerHTML = `
+                <i class="fas fa-${type === 'danger' ? 'exclamation-triangle' : type === 'warning' ? 'exclamation-circle' : 'info-circle'} me-2"></i>
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+            flashContainer.appendChild(alert);
+            
+            // Auto remove after 5 seconds
+            setTimeout(() => {
+                if (alert.parentNode) {
+                    alert.remove();
+                }
+            }, 5000);
+        }
+
+async function exportToExcel() {
+    if (!currentData) {
+        showAlert('Aucune donnée à exporter', 'warning');
+        return;
+    }
+
+    const formData = new FormData(document.getElementById('searchForm'));
+    const atelier = formData.get('atelier');
+    const mois = formData.get('mois');
+    const annee = formData.get('annee');
+
+    try {
+        // Essayer l'exportation via le backend d'abord
+        const response = await fetch(`/api/export_excel?atelier=${encodeURIComponent(atelier)}&mois=${mois}&annee=${annee}`, {
+            method: 'GET',
+            headers: {
+                'Accept': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+            }
+        });
+
+        if (response.ok) {
+            // Fichier Excel généré par le backend
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `Rapport_Qualite_${atelier}_${monthNames[parseInt(mois)]}_${annee}.xlsx`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
+            showAlert('Exportation réussie !', 'success');
+        } else {
+            // Basculer vers l'exportation côté client en cas d'échec du backend
+            console.warn('Échec de l\'exportation backend, basculement vers l\'exportation côté client');
+            clientSideExport(atelier, mois, annee);
+        }
+
+    } catch (error) {
+        console.error('Erreur lors de l\'exportation:', error);
+        // Basculer vers l'exportation côté client
+        clientSideExport(atelier, mois, annee);
+    }
+}
+
+function s2ab(s) {
+    const buf = new ArrayBuffer(s.length);
+    const view = new Uint8Array(buf);
+    for (let i = 0; i < s.length; i++) view[i] = s.charCodeAt(i) & 0xFF;
+    return buf;
+}
+
+function clientSideExport(atelier, mois, annee) {
+    // Préparer les données brutes
+    const isAggregate = currentData.query_info && currentData.query_info.is_aggregate;
+    let rawData = {};
+
+    if (isAggregate) {
+        rawData = {
+            'Pièces Exportées': currentData.pieces_exportees?.total || 0,
+            'Pièces Contrôlées': currentData.pieces_controlees?.total || 0,
+            'Pièces Réclamées': currentData.pieces_reclamees?.total || 0,
+            'Pièces Retouchées': currentData.pieces_retouchees?.total || 0,
+            'Pièces Rebutées': currentData.pieces_rebutees?.total || 0,
+            'Quantité d\'Alertes': currentData.quantite_alertes?.total || 0,
+            'Coût du Rebut': currentData.cout_rebut?.total || 0,
+            'CNQ': atelier === 'Total' ? (currentData.cnq?.total || 0) : 0,
+            'Réclamations Officielles': currentData.reclamations_officielles?.total || 0
+        };
+    } else {
+        const tables = ['pieces_exportees', 'pieces_controlees', 'pieces_reclamees', 
+                        'pieces_retouchees', 'pieces_rebutees', 'quantite_alertes', 
+                        'cout_rebut', 'cnq', 'reclamations_officielles'];
+        
+        tables.forEach(table => {
+            rawData[getLabelName(table)] = 0;
+            if (currentData[table] && Array.isArray(currentData[table])) {
+                currentData[table].forEach(row => {
+                    const field = getFieldName(table);
+                    rawData[getLabelName(table)] += parseFloat(row[field]) || 0;
+                });
+            }
+        });
+        rawData['CNQ'] = atelier === 'Total' ? rawData['CNQ'] : 0;
+    }
+
+    // Calculer les indicateurs
+    const pieces_exportees = rawData['Pièces Exportées'] || 0;
+    const pieces_controlees = rawData['Pièces Contrôlées'] || 0;
+    const pieces_reclamees = rawData['Pièces Réclamées'] || 0;
+    const pieces_retouchees = rawData['Pièces Retouchées'] || 0;
+    const pieces_rebutees = rawData['Pièces Rebutées'] || 0;
+    const alertes = rawData['Quantité d\'Alertes'] || 0;
+
+    const indicators = {
+        'PPM Officiel': pieces_exportees > 0 ? (pieces_reclamees / pieces_exportees * 1000000) : 0,
+        'PPM Non Officiel': pieces_exportees > 0 ? (alertes / pieces_exportees * 1000000) : 0,
+        'Taux de Retouche': pieces_controlees > 0 ? (pieces_retouchees / pieces_controlees * 100) : 0,
+        'Taux de Rebut': pieces_controlees > 0 ? (pieces_rebutees / pieces_controlees * 100) : 0,
+        'Coût de Rebut': rawData['Coût du Rebut'] || 0,
+        'CNQ': rawData['CNQ'] || 0,
+        'Nombre de Réclamations': rawData['Réclamations Officielles'] || 0
+    };
+
+    // Préparer les données pour Excel
+    const wsData = [
+        ['Rapport Qualité', '', '', '', ''],
+        ['Atelier', atelier, '', '', ''],
+        ['Mois', monthNames[parseInt(mois)], '', '', ''],
+        ['Année', annee, '', '', ''],
+        ['', '', '', '', ''], // Ligne vide pour espacement
+        ['Données Brutes', '', '', '', ''],
+        ['Label', 'Valeur', 'Unité', '', ''],
+        ...Object.entries(rawData).map(([label, value]) => [label, formatNumber(value), getUnit(label), '', '']),
+        ['', '', '', '', ''], // Ligne vide pour espacement
+        ['Indicateurs de Performance', '', '', '', ''],
+        ['Label', 'Valeur', 'Unité', 'Seuil', 'Statut'],
+        ...Object.entries(indicators).map(([label, value]) => {
+            const threshold = currentData.seuils?.[label] || getDefaultThreshold(label);
+            return [
+                label,
+                formatNumber(value),
+                getUnit(label),
+                formatNumber(threshold),
+                value > threshold ? 'Seuil dépassé' : 'Dans les limites'
+            ];
+        })
+    ];
+
+    // Créer la feuille de calcul et le classeur
+    const ws = XLSX.utils.aoa_to_sheet(wsData);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Rapport Qualité');
+
+    // Ajuster la largeur des colonnes
+    ws['!cols'] = [
+        { wch: 30 }, // Colonne Label
+        { wch: 15 }, // Colonne Valeur
+        { wch: 10 }, // Colonne Unité
+        { wch: 10 }, // Colonne Seuil
+        { wch: 15 }  // Colonne Statut
+    ];
+
+    // Générer et télécharger le fichier Excel
+    const wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'binary' });
+    saveAs(new Blob([s2ab(wbout)], { type: 'application/octet-stream' }), `Rapport_Qualite_${atelier}_${monthNames[parseInt(mois)]}_${annee}.xlsx`);
+    showAlert('Exportation réussie !', 'success');
+}
+
+// Fonction pour mapper les noms de tables aux libellés affichés
+function getLabelName(table) {
+    const labelMap = {
+        'pieces_exportees': 'Pièces Exportées',
+        'pieces_controlees': 'Pièces Contrôlées',
+        'pieces_reclamees': 'Pièces Réclamées',
+        'pieces_retouchees': 'Pièces Retouchées',
+        'pieces_rebutees': 'Pièces Rebutées',
+        'quantite_alertes': 'Quantité d\'Alertes',
+        'cout_rebut': 'Coût du Rebut',
+        'cnq': 'CNQ',
+        'reclamations_officielles': 'Réclamations Officielles'
+    };
+    return labelMap[table] || table;
+}
+
+// Fonction pour obtenir les unités des libellés
+function getUnit(label) {
+    if (label.includes('PPM')) return 'PPM';
+    if (label.includes('Taux')) return '%';
+    if (label.includes('Coût') || label.includes('CNQ')) return 'TND';
+    if (label.includes('Réclamations') || label.includes('Alertes')) return 'unités';
+    return 'pièces';
+}
+
+// Fonction pour les seuils par défaut
+function getDefaultThreshold(label) {
+    const defaultThresholds = {
+        'PPM Officiel': 100,
+        'PPM Non Officiel': 500,
+        'Taux de Retouche': 5,
+        'Taux de Rebut': 2,
+        'Coût de Rebut': 500,
+        'CNQ': 1000,
+        'Nombre de Réclamations': 5
+    };
+    return defaultThresholds[label] || 0;
+}
+    </script>
+</body>
+</html>

@@ -1,0 +1,1107 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Saisie des Données - ADI Quality</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>✈️</text></svg>">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-red: #DC2626;
+            --navy-blue: #1E3A8A;
+            --white: #FFFFFF;
+            --light-gray: #F8FAFC;
+            --dark-gray: #334155;
+            --success-green: #10B981;
+            --excel-green: #0F7B0F;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, var(--light-gray), #E2E8F0);
+            min-height: 100vh;
+        }
+
+        .container-fluid {
+            padding: 2rem;
+        }
+
+        .page-header {
+            background: white;
+            border-radius: 20px;
+            padding: 2rem;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+            border-left: 5px solid var(--navy-blue);
+        }
+
+        .page-title {
+            color: var(--navy-blue);
+            font-weight: 700;
+            margin: 0;
+        }
+
+        .page-subtitle {
+            color: var(--dark-gray);
+            margin: 0;
+            opacity: 0.8;
+        }
+
+        .form-container {
+            background: white;
+            border-radius: 20px;
+            padding: 3rem;
+            box-shadow: 0 15px 50px rgba(0,0,0,0.1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .form-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 5px;
+            background: linear-gradient(135deg, var(--navy-blue), var(--primary-red));
+        }
+
+        .section-title {
+            color: var(--navy-blue);
+            font-weight: 700;
+            font-size: 1.3rem;
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid #E2E8F0;
+            position: relative;
+        }
+
+        .section-title::before {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            width: 50px;
+            height: 2px;
+            background: var(--primary-red);
+        }
+
+        .form-floating {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-control, .form-select {
+            border-radius: 15px;
+            border: 2px solid #E2E8F0;
+            padding: 1rem;
+            height: auto;
+            transition: all 0.3s ease;
+            font-size: 1rem;
+        }
+
+        .form-control:focus, .form-select:focus {
+            border-color: var(--navy-blue);
+            box-shadow: 0 0 0 0.2rem rgba(30, 58, 138, 0.25);
+            transform: translateY(-2px);
+        }
+
+        .form-floating > label {
+            color: var(--dark-gray);
+            font-weight: 500;
+            opacity: 0.8;
+        }
+
+        .required-field::after {
+            content: ' *';
+            color: var(--primary-red);
+            font-weight: bold;
+        }
+
+        .btn-submit {
+            background: linear-gradient(135deg, var(--navy-blue), var(--primary-red));
+            border: none;
+            border-radius: 15px;
+            padding: 1rem 3rem;
+            font-weight: 600;
+            font-size: 1.1rem;
+            color: white;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-submit::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .btn-submit:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 48px rgba(30, 58, 138, 0.4);
+            color: white;
+        }
+
+        .btn-submit:hover::before {
+            left: 100%;
+        }
+
+        .btn-reset {
+            background: #6B7280;
+            color: white;
+            border: none;
+            border-radius: 15px;
+            padding: 1rem 2rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .btn-reset:hover {
+            background: #4B5563;
+            transform: translateY(-2px);
+            color: white;
+        }
+
+        .btn-excel {
+            background: linear-gradient(135deg, var(--excel-green), #0D6EFD);
+            color: white;
+            border: none;
+            border-radius: 15px;
+            padding: 1rem 2rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-excel::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .btn-excel:hover {
+            background: linear-gradient(135deg, #0A5A0A, #0B6ED7);
+            transform: translateY(-2px);
+            color: white;
+            box-shadow: 0 8px 32px rgba(15, 123, 15, 0.4);
+        }
+
+        .btn-excel:hover::before {
+            left: 100%;
+        }
+
+        .btn-back {
+            background: var(--light-gray);
+            color: var(--navy-blue);
+            border: 2px solid var(--navy-blue);
+            border-radius: 15px;
+            padding: 1rem 2rem;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            display: inline-block;
+        }
+
+        .btn-back:hover {
+            background: var(--navy-blue);
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .alert {
+            border-radius: 15px;
+            border: none;
+            padding: 1rem 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .alert-success {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(52, 211, 153, 0.1));
+            color: var(--success-green);
+            border-left: 4px solid var(--success-green);
+        }
+
+        .alert-danger {
+            background: linear-gradient(135deg, rgba(220, 38, 38, 0.1), rgba(239, 68, 68, 0.1));
+            color: var(--primary-red);
+            border-left: 4px solid var(--primary-red);
+        }
+
+        .info-card {
+            background: linear-gradient(135deg, rgba(30, 58, 138, 0.05), rgba(220, 38, 38, 0.05));
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            border-left: 4px solid var(--navy-blue);
+        }
+
+        .info-card h6 {
+            color: var(--navy-blue);
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .info-card p {
+            color: var(--dark-gray);
+            margin: 0;
+            font-size: 0.95rem;
+        }
+
+        .form-section {
+            background: rgba(248, 250, 252, 0.5);
+            border-radius: 15px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            border: 1px solid #E2E8F0;
+        }
+
+        .current-date {
+            background: var(--navy-blue);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 25px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            display: inline-block;
+            margin-bottom: 1rem;
+        }
+
+        .action-buttons {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 2rem;
+        }
+
+        .right-buttons {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .container-fluid {
+                padding: 1rem;
+            }
+            
+            .form-container {
+                padding: 2rem;
+            }
+            
+            .btn-submit, .btn-reset, .btn-excel, .btn-back {
+                width: 100%;
+                margin-bottom: 1rem;
+            }
+
+            .action-buttons {
+                flex-direction: column;
+            }
+
+            .right-buttons {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+
+        /* Animations */
+        @keyframes slideInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .form-section {
+            animation: slideInUp 0.6s ease-out;
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <!-- Page Header -->
+        <div class="page-header" data-aos="fade-down">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="page-title">
+                        <i class="fas fa-plus-circle me-2"></i>
+                        Saisie des Données Qualité
+                    </h1>
+                    <p class="page-subtitle">
+                        Enregistrement des données de performance pour les ateliers ADI
+                    </p>
+                </div>
+                <div class="current-date">
+                    <i class="fas fa-calendar me-2"></i>
+                    <span id="currentDate"></span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Flash Messages -->
+        <div id="flashMessages">
+            <!-- Messages will be displayed here -->
+        </div>
+
+        <!-- Info Card -->
+        <div class="info-card" data-aos="fade-up">
+            <h6><i class="fas fa-info-circle me-2"></i>Instructions</h6>
+            <p>
+                Veuillez remplir les champs nécessaires. 
+                Les données seront automatiquement enregistrées dans la base de données 
+                et utilisées pour générer les indicateurs de performance qualité.
+            </p>
+        </div>
+
+        <!-- Form Container -->
+        <div class="form-container" data-aos="fade-up" data-aos-delay="200">
+            <form method="POST" action="#" id="qualityForm">
+                <!-- Section 1: Informations Générales -->
+                <div class="form-section">
+                    <h3 class="section-title">
+                        <i class="fas fa-info-circle me-2"></i>
+                        1. Informations Générales
+                    </h3>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-floating">
+                                <select class="form-select" id="mois" name="mois" required>
+                                    <option value="">Sélectionner le mois</option>
+                                    <option value="1">Janvier</option>
+                                    <option value="2">Février</option>
+                                    <option value="3">Mars</option>
+                                    <option value="4">Avril</option>
+                                    <option value="5">Mai</option>
+                                    <option value="6">Juin</option>
+                                    <option value="7">Juillet</option>
+                                    <option value="8">Août</option>
+                                    <option value="9">Septembre</option>
+                                    <option value="10">Octobre</option>
+                                    <option value="11">Novembre</option>
+                                    <option value="12">Décembre</option>
+                                </select>
+                                <label for="mois" class="required-field">Mois</label>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-floating">
+                                <select class="form-select" id="annee" name="annee" required>
+                                    <option value="">Sélectionner l'année</option>
+                                    <!-- Les années seront générées dynamiquement par JavaScript -->
+                                </select>
+                                <label for="annee" class="required-field">Année</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-floating">
+                                <select class="form-select" id="atelier" name="atelier" required>
+                                    <option value="">Sélectionner l'atelier</option>
+                                    <option value="Manchons">Manchons</option>
+                                    <option value="Colliers">Colliers</option>
+                                    <option value="Racks">Racks</option>
+                                    <option value="Moulage">Moulage</option>
+                                    <option value="Protections thermiques">Protections thermiques</option>
+                                    <option value="Isolant souple">Isolant souple</option>
+                                    <option value="Composite">Composite</option>
+                                    <option value="Système de visualisation">Système de visualisation</option>
+                                </select>
+                                <label for="atelier" class="required-field">Atelier</label>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-floating">
+                                <select class="form-select" id="uap" name="uap" required>
+                                    <option value="">Sélectionner l'UAP</option>
+                                    <option value="UAP1">UAP1</option>
+                                    <option value="UAP2">UAP2</option>
+                                </select>
+                                <label for="uap" class="required-field">UAP</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Section 2: Chiffres Qualité Interne -->
+                <div class="form-section">
+                    <h3 class="section-title">
+                        <i class="fas fa-cogs me-2"></i>
+                        2. Données Qualité Interne
+                    </h3>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-floating">
+                                <input type="number" class="form-control" id="pieces_retouchees" 
+                                       name="pieces_retouchees" placeholder="0" min="0">
+                                <label for="pieces_retouchees">Pièces retouchées</label>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-floating">
+                                <input type="number" class="form-control" id="pieces_rebutees" 
+                                       name="pieces_rebutees" placeholder="0" min="0">
+                                <label for="pieces_rebutees">Pièces rebutées</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-floating">
+                                <input type="number" class="form-control" id="pieces_controlees" 
+                                       name="pieces_controlees" placeholder="0" min="0">
+                                <label for="pieces_controlees">Pièces contrôlées</label>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-floating">
+                                <input type="number" class="form-control" id="cout_rebut" 
+                                       name="cout_rebut" placeholder="0.00" min="0" step="0.01">
+                                <label for="cout_rebut">Coût du rebut (DT)</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Section 3: Chiffres Qualité Externe -->
+                <div class="form-section">
+                    <h3 class="section-title">
+                        <i class="fas fa-external-link-alt me-2"></i>
+                        3. Données Qualité Externe
+                    </h3>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-floating">
+                                <input type="number" class="form-control" id="pieces_reclamees" 
+                                       name="pieces_reclamees" placeholder="0" min="0">
+                                <label for="pieces_reclamees">Pièces réclamées</label>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-floating">
+                                <input type="number" class="form-control" id="pieces_exportees" 
+                                       name="pieces_exportees" placeholder="0" min="0">
+                                <label for="pieces_exportees">Pièces exportées</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-floating">
+                                <input type="number" class="form-control" id="quantite_alertes" 
+                                       name="quantite_alertes" placeholder="0" min="0">
+                                <label for="quantite_alertes">Pièces relatives à des alertes qualité</label>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-floating">
+                                <input type="number" class="form-control" id="reclamations_officielles" 
+                                       name="reclamations_officielles" placeholder="0" min="0">
+                                <label for="reclamations_officielles">Réclamations officielles</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Aperçu des Calculs -->
+                <div class="form-section" id="calculationsPreview" style="display: none;">
+                    <h3 class="section-title">
+                        <i class="fas fa-calculator me-2"></i>
+                        Aperçu des Calculs
+                    </h3>
+                    <div class="row">
+                        <div class="col-md-3 mb-3">
+                            <div class="card border-primary">
+                                <div class="card-body text-center">
+                                    <h6 class="card-title text-primary">PPM Officiel</h6>
+                                    <h4 class="text-navy-blue" id="ppmOfficielCalc">0</h4>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <div class="card border-warning">
+                                <div class="card-body text-center">
+                                    <h6 class="card-title text-warning">PPM Non Officiel</h6>
+                                    <h4 class="text-warning" id="ppmNonOfficielCalc">0</h4>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <div class="card border-danger">
+                                <div class="card-body text-center">
+                                    <h6 class="card-title text-danger">Taux de Rebut</h6>
+                                    <h4 class="text-danger" id="tauxRebutCalc">0%</h4>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <div class="card border-success">
+                                <div class="card-body text-center">
+                                    <h6 class="card-title text-success">Taux de Retouche</h6>
+                                    <h4 class="text-success" id="tauxRetoucheCalc">0%</h4>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Buttons -->
+                <div class="action-buttons">
+                    <a href="http://localhost:5000/dashboard" class="btn-back">
+                        <i class="fas fa-arrow-left me-2"></i>
+                        Retour au Dashboard
+                    </a>
+                    
+                    <div class="right-buttons">
+                        <button type="button" class="btn-reset" onclick="resetForm()">
+                            <i class="fas fa-undo me-2"></i>
+                            Réinitialiser
+                        </button>
+                        <button type="button" class="btn-excel" onclick="exportToExcel()">
+                            <i class="fas fa-file-excel me-2"></i>
+                            Exporter Excel
+                        </button>
+                        <button type="submit" class="btn-submit" id="submitBtn">
+                            <i class="fas fa-save me-2"></i>
+                            <span id="submitText">Enregistrer les Données</span>
+                            <div class="spinner-border spinner-border-sm d-none ms-2" id="submitSpinner"></div>
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.js"></script>
+
+    <script>
+        // Configuration de l'URL du serveur
+        const SERVER_URL = 'http://localhost:5000'; // Modifiez selon votre configuration
+
+        // Initialize AOS
+        AOS.init({
+            duration: 800,
+            once: true
+        });
+
+        // Set current date
+        document.getElementById('currentDate').textContent = new Date().toLocaleDateString('fr-FR', {
+            weekday: 'long',
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+        });
+
+        // Generate dynamic year options
+        function generateYearOptions() {
+            const currentYear = new Date().getFullYear();
+            const anneeSelect = document.getElementById('annee');
+            
+            anneeSelect.innerHTML = '<option value="">Sélectionner l\'année</option>';
+            
+            const years = [currentYear - 1, currentYear, currentYear + 1];
+            
+            years.forEach(year => {
+                const option = document.createElement('option');
+                option.value = year;
+                option.textContent = year;
+                anneeSelect.appendChild(option);
+            });
+        }
+
+        // Set default values
+        function setDefaultValues() {
+            const currentMonth = new Date().getMonth() + 1;
+            const currentYear = new Date().getFullYear();
+            
+            document.getElementById('mois').value = currentMonth;
+            document.getElementById('annee').value = currentYear;
+        }
+
+        generateYearOptions();
+        setDefaultValues();
+
+        const form = document.getElementById('qualityForm');
+        const inputs = form.querySelectorAll('input[type="number"]');
+
+        // Add event listeners for real-time calculations
+        inputs.forEach(input => {
+            input.addEventListener('input', function() {
+                validateField(this);
+                calculateIndicators();
+            });
+
+            input.addEventListener('blur', function() {
+                validateField(this);
+            });
+        });
+
+        function validateField(field) {
+            const value = parseFloat(field.value) || 0;
+            
+            if (value < 0) {
+                field.classList.add('is-invalid');
+                field.classList.remove('is-valid');
+                return false;
+            } else if (field.value.trim() !== '') {
+                field.classList.remove('is-invalid');
+                field.classList.add('is-valid');
+                return true;
+            } else {
+                field.classList.remove('is-invalid', 'is-valid');
+                return true;
+            }
+        }
+
+        function calculateIndicators() {
+            const piecesReclamees = parseFloat(document.getElementById('pieces_reclamees').value) || 0;
+            const piecesExportees = parseFloat(document.getElementById('pieces_exportees').value) || 0;
+            const quantiteAlertes = parseFloat(document.getElementById('quantite_alertes').value) || 0;
+            const piecesRetouchees = parseFloat(document.getElementById('pieces_retouchees').value) || 0;
+            const piecesRebutees = parseFloat(document.getElementById('pieces_rebutees').value) || 0;
+            const piecesControlees = parseFloat(document.getElementById('pieces_controlees').value) || 0;
+
+            const ppmOfficiel = piecesExportees > 0 ? (piecesReclamees / piecesExportees * 1000000) : 0;
+            const ppmNonOfficiel = piecesExportees > 0 ? (quantiteAlertes / piecesExportees * 1000000) : 0;
+            const tauxRebut = piecesControlees > 0 ? (piecesRebutees / piecesControlees * 100) : 0;
+            const tauxRetouche = piecesControlees > 0 ? (piecesRetouchees / piecesControlees * 100) : 0;
+
+            document.getElementById('ppmOfficielCalc').textContent = Math.round(ppmOfficiel);
+            document.getElementById('ppmNonOfficielCalc').textContent = Math.round(ppmNonOfficiel);
+            document.getElementById('tauxRebutCalc').textContent = tauxRebut.toFixed(2) + '%';
+            document.getElementById('tauxRetoucheCalc').textContent = tauxRetouche.toFixed(2) + '%';
+
+            const hasData = piecesReclamees > 0 || piecesExportees > 0 || quantiteAlertes > 0 || 
+                           piecesRetouchees > 0 || piecesRebutees > 0 || piecesControlees > 0;
+            
+            const previewSection = document.getElementById('calculationsPreview');
+            if (hasData) {
+                previewSection.style.display = 'block';
+            }
+        }
+
+        // Validation des champs obligatoires
+        function validateRequiredFields() {
+            const requiredFields = ['mois', 'annee', 'atelier', 'uap'];
+            let allValid = true;
+            let errors = [];
+
+            requiredFields.forEach(fieldName => {
+                const field = document.getElementById(fieldName);
+                if (!field.value || field.value.trim() === '') {
+                    field.classList.add('is-invalid');
+                    allValid = false;
+                    
+                    const label = field.previousElementSibling || field.querySelector('option[value=""]');
+                    const fieldLabel = label ? label.textContent.replace('Sélectionner', '').replace('*', '').trim() : fieldName;
+                    errors.push(`Le champ "${fieldLabel}" est obligatoire`);
+                } else {
+                    field.classList.remove('is-invalid');
+                }
+            });
+
+            if (!allValid) {
+                showMessage('danger', 'Veuillez remplir tous les champs obligatoires : ' + errors.join(', '));
+            }
+
+            return allValid;
+        }
+
+        // Form submission with better error handling
+        form.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            console.log('🔍 Début de la soumission du formulaire');
+
+            // Validate required fields
+            if (!validateRequiredFields()) {
+                return;
+            }
+
+            // Validate numeric fields
+            const numericFields = form.querySelectorAll('input[type="number"]');
+            let isValid = true;
+            
+            numericFields.forEach(field => {
+                if (field.value && !validateField(field)) {
+                    isValid = false;
+                }
+            });
+
+            if (!isValid) {
+                showMessage('danger', 'Veuillez corriger les erreurs dans les champs numériques.');
+                return;
+            }
+
+            // Show loading state
+            const submitBtn = document.getElementById('submitBtn');
+            const submitText = document.getElementById('submitText');
+            const submitSpinner = document.getElementById('submitSpinner');
+            
+            submitText.textContent = 'Enregistrement...';
+            submitSpinner.classList.remove('d-none');
+            submitBtn.disabled = true;
+
+            // Prepare data
+            const formData = {
+                mois: parseInt(document.getElementById('mois').value),
+                annee: parseInt(document.getElementById('annee').value),
+                atelier: document.getElementById('atelier').value,
+                uap: document.getElementById('uap').value,
+                pieces_retouchees: parseInt(document.getElementById('pieces_retouchees').value) || 0,
+                pieces_rebutees: parseInt(document.getElementById('pieces_rebutees').value) || 0,
+                pieces_controlees: parseInt(document.getElementById('pieces_controlees').value) || 0,
+                cout_rebut: parseFloat(document.getElementById('cout_rebut').value) || 0,
+                pieces_reclamees: parseInt(document.getElementById('pieces_reclamees').value) || 0,
+                pieces_exportees: parseInt(document.getElementById('pieces_exportees').value) || 0,
+                quantite_alertes: parseInt(document.getElementById('quantite_alertes').value) || 0,
+                reclamations_officielles: parseInt(document.getElementById('reclamations_officielles').value) || 0
+            };
+
+            console.log('📤 Données à envoyer:', formData);
+
+            try {
+                const response = await fetch(`${SERVER_URL}/api/save_data`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify(formData),
+                });
+
+                console.log('📡 Réponse du serveur - Status:', response.status);
+
+                let result;
+                try {
+                    result = await response.json();
+                    console.log('📥 Réponse JSON:', result);
+                } catch (jsonError) {
+                    console.error('❌ Erreur parsing JSON:', jsonError);
+                    const textResult = await response.text();
+                    console.log('📄 Réponse texte:', textResult);
+                    throw new Error('Réponse du serveur invalide');
+                }
+
+                if (response.ok) {
+                    showMessage('success', result.message || 'Données enregistrées avec succès !');
+                    console.log('✅ Données sauvegardées avec succès');
+                    
+                    // Optionally reset form after successful save
+                    setTimeout(() => {
+                        if (confirm('Données enregistrées ! Voulez-vous réinitialiser le formulaire pour une nouvelle saisie ?')) {
+                            resetForm();
+                        }
+                    }, 1500);
+                    
+                } else {
+                    console.error('❌ Erreur serveur:', result);
+                    showMessage('danger', result.error || 'Erreur lors de l\'enregistrement des données.');
+                }
+            } catch (error) {
+                console.error('💥 Erreur de connexion:', error);
+                
+                // More detailed error messages
+                if (error.name === 'TypeError' && error.message.includes('fetch')) {
+                    showMessage('danger', `Impossible de se connecter au serveur (${SERVER_URL}). Vérifiez que le serveur Flask est démarré.`);
+                } else if (error.message.includes('JSON')) {
+                    showMessage('danger', 'Erreur de communication avec le serveur. Réponse invalide reçue.');
+                } else {
+                    showMessage('danger', `Erreur technique: ${error.message}`);
+                }
+            } finally {
+                // Reset loading state
+                submitText.textContent = 'Enregistrer les Données';
+                submitSpinner.classList.add('d-none');
+                submitBtn.disabled = false;
+                console.log('🔄 État du bouton réinitialisé');
+            }
+        });
+
+        function showMessage(type, message) {
+            const flashMessages = document.getElementById('flashMessages');
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert alert-${type} alert-dismissible fade show`;
+            alertDiv.innerHTML = `
+                <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-triangle'} me-2"></i>
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+            
+            // Remove any existing alerts
+            const existingAlerts = flashMessages.querySelectorAll('.alert');
+            existingAlerts.forEach(alert => alert.remove());
+            
+            flashMessages.appendChild(alertDiv);
+            
+            // Auto-dismiss after 8 seconds for success, 12 seconds for errors
+            const dismissTime = type === 'success' ? 8000 : 12000;
+            setTimeout(() => {
+                if (alertDiv.parentElement) {
+                    alertDiv.remove();
+                }
+            }, dismissTime);
+            
+            // Scroll to message
+            alertDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+
+        function resetForm() {
+            if (confirm('Êtes-vous sûr de vouloir réinitialiser le formulaire ?')) {
+                form.reset();
+                
+                // Reset validation classes
+                const fields = form.querySelectorAll('.form-control, .form-select');
+                fields.forEach(field => {
+                    field.classList.remove('is-valid', 'is-invalid');
+                });
+
+                // Reset default values
+                setDefaultValues();
+                
+                // Hide calculations preview
+                document.getElementById('calculationsPreview').style.display = 'none';
+                
+                console.log('🔄 Formulaire réinitialisé');
+            }
+        }
+
+        // Auto-save draft functionality (using memory instead of localStorage)
+        let autoSaveTimer;
+        let formDraft = {};
+
+        inputs.forEach(input => {
+            input.addEventListener('input', function() {
+                clearTimeout(autoSaveTimer);
+                autoSaveTimer = setTimeout(saveDraft, 3000);
+            });
+        });
+
+        function saveDraft() {
+            const formData = new FormData(form);
+            formDraft = {};
+            
+            for (let [key, value] of formData.entries()) {
+                if (value) formDraft[key] = value;
+            }
+            
+            if (Object.keys(formDraft).length > 0) {
+                showTemporaryNotification('Brouillon sauvegardé automatiquement', 'info');
+                console.log('💾 Brouillon sauvegardé:', formDraft);
+            }
+        }
+
+        function showTemporaryNotification(message, type = 'info') {
+            const notification = document.createElement('div');
+            notification.className = `alert alert-${type} position-fixed`;
+            notification.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 250px; opacity: 0.9;';
+            notification.innerHTML = `<i class="fas fa-save me-2"></i>${message}`;
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                if (notification.parentElement) {
+                    notification.remove();
+                }
+            }, 2000);
+        }
+
+        // Load draft on page load
+        window.addEventListener('load', function() {
+            if (formDraft && Object.keys(formDraft).length > 0) {
+                if (confirm('Un brouillon a été trouvé. Voulez-vous le charger ?')) {
+                    Object.keys(formDraft).forEach(key => {
+                        const field = document.getElementById(key);
+                        if (field && formDraft[key]) {
+                            field.value = formDraft[key];
+                            validateField(field);
+                        }
+                    });
+                    calculateIndicators();
+                    console.log('📋 Brouillon chargé');
+                }
+            }
+        });
+
+        // Clear draft after successful submission
+        form.addEventListener('submit', function() {
+            formDraft = {};
+        });
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', function(e) {
+            if (e.ctrlKey && e.key === 's') {
+                e.preventDefault();
+                form.dispatchEvent(new Event('submit'));
+            }
+            
+            if (e.ctrlKey && e.key === 'r') {
+                e.preventDefault();
+                resetForm();
+            }
+
+            if (e.ctrlKey && e.key === 'e') {
+                e.preventDefault();
+                exportToExcel();
+            }
+        });
+
+        function validateNumericInput(input) {
+            const value = parseFloat(input.value);
+            if (input.value && (isNaN(value) || value < 0)) {
+                input.setCustomValidity('Veuillez entrer un nombre positif valide');
+                return false;
+            }
+            input.setCustomValidity('');
+            return true;
+        }
+
+        // Add real-time validation for numeric inputs
+        inputs.forEach(input => {
+            input.addEventListener('input', function() {
+                validateNumericInput(this);
+            });
+        });
+
+        // Format numbers on blur for better UX
+        inputs.forEach(input => {
+            input.addEventListener('blur', function() {
+                if (this.value && !isNaN(this.value)) {
+                    if (this.step === '0.01') {
+                        this.value = parseFloat(this.value).toFixed(2);
+                    } else {
+                        this.value = parseInt(this.value) || 0;
+                    }
+                }
+            });
+        });
+
+        // Export to Excel function
+        function exportToExcel() {
+            const data = exportFormData();
+            
+            const excelData = [
+                ['Champ', 'Valeur', 'Type', 'Détails'],
+                ['', '', '', ''],
+                ['INFORMATIONS GÉNÉRALES', '', '', ''],
+                ['Mois', getMonthName(data.mois), 'Information Générale', 'Période de reporting'],
+                ['Année', data.annee, 'Information Générale', 'Année de reporting'],
+                ['Atelier', data.atelier, 'Information Générale', 'Atelier de production'],
+                ['UAP', data.uap, 'Information Générale', 'Unité Autonome de Production'],
+                ['', '', '', ''],
+                ['QUALITÉ INTERNE', '', '', ''],
+                ['Pièces retouchées', data.pieces_retouchees || '0', 'Qualité Interne', 'Nombre de pièces ayant nécessité une retouche'],
+                ['Pièces rebutées', data.pieces_rebutees || '0', 'Qualité Interne', 'Nombre de pièces mises au rebut'],
+                ['Pièces contrôlées', data.pieces_controlees || '0', 'Qualité Interne', 'Nombre total de pièces contrôlées'],
+                ['Coût du rebut (DT)', data.cout_rebut || '0.00', 'Qualité Interne', 'Coût financier des pièces rebutées'],
+                ['', '', '', ''],
+                ['QUALITÉ EXTERNE', '', '', ''],
+                ['Pièces réclamées', data.pieces_reclamees || '0', 'Qualité Externe', 'Nombre de pièces réclamées par les clients'],
+                ['Pièces exportées', data.pieces_exportees || '0', 'Qualité Externe', 'Nombre total de pièces exportées'],
+                ['Cas d\'alerte qualité', data.quantite_alertes || '0', 'Qualité Externe', 'Nombre d\'alertes qualité non officielles'],
+                ['Réclamations officielles', data.reclamations_officielles || '0', 'Qualité Externe', 'Nombre de réclamations clients officielles'],
+                ['', '', '', ''],
+                ['INDICATEURS CALCULÉS', '', '', ''],
+                ['PPM Officiel', data.calculations.ppm_officiel, 'Indicateur', 'Parties Par Million - Réclamations officielles'],
+                ['PPM Non Officiel', data.calculations.ppm_non_officiel, 'Indicateur', 'Parties Par Million - Alertes internes'],
+                ['Taux de Rebut (%)', data.calculations.taux_rebut.toFixed(2), 'Indicateur', 'Pourcentage de pièces rebutées'],
+                ['Taux de Retouche (%)', data.calculations.taux_retouche.toFixed(2), 'Indicateur', 'Pourcentage de pièces retouchées'],
+                ['', '', '', ''],
+                ['INFORMATIONS D\'EXPORT', '', '', ''],
+                ['Date d\'export', new Date().toLocaleDateString('fr-FR'), 'Métadonnées', 'Date de génération du rapport'],
+                ['Heure d\'export', new Date().toLocaleTimeString('fr-FR'), 'Métadonnées', 'Heure de génération du rapport'],
+                ['Version', '1.0', 'Métadonnées', 'Version du système de saisie']
+            ];
+
+            const csvContent = excelData.map(row =>
+                row.map(cell => `"${cell || ''}"`).join(';')
+            ).join('\n');
+
+            const BOM = '\uFEFF';
+            const blob = new Blob([BOM + csvContent], {
+                type: 'text/csv;charset=utf-8;'
+            });
+            
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            
+            const filename = `ADI_Quality_Data_${data.atelier || 'Atelier'}_${data.mois || 'XX'}-${data.annee || 'XXXX'}_${new Date().toISOString().slice(0, 10)}.csv`;
+            a.download = filename;
+            
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            
+            showTemporaryNotification('Données exportées en Excel avec succès !', 'success');
+            console.log(`📊 Export Excel effectué: ${filename}`);
+        }
+
+        function exportFormData() {
+            const formData = new FormData(form);
+            const data = {};
+            
+            for (let [key, value] of formData.entries()) {
+                data[key] = value;
+            }
+            
+            data.calculations = {
+                ppm_officiel: Math.round(parseFloat(document.getElementById('ppmOfficielCalc').textContent) || 0),
+                ppm_non_officiel: Math.round(parseFloat(document.getElementById('ppmNonOfficielCalc').textContent) || 0),
+                taux_rebut: parseFloat(document.getElementById('tauxRebutCalc').textContent.replace('%', '')) || 0,
+                taux_retouche: parseFloat(document.getElementById('tauxRetoucheCalc').textContent.replace('%', '')) || 0
+            };
+            
+            return data;
+        }
+
+        function getMonthName(monthNumber) {
+            const months = [
+                '', 'Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin',
+                'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'
+            ];
+            return months[parseInt(monthNumber)] || monthNumber || 'Non défini';
+        }
+
+        // Enhanced debugging
+        console.log('🚀 Interface de saisie ADI Quality initialisée');
+        console.log('🔧 Configuration serveur:', SERVER_URL);
+        
+        // Test server connection on load
+        fetch(`${SERVER_URL}/api/save_data`, { method: 'OPTIONS' })
+            .then(response => {
+                console.log('🔗 Test de connexion serveur - OK');
+            })
+            .catch(error => {
+                console.warn('⚠️ Serveur non accessible:', error.message);
+                showMessage('warning', 'Attention: Le serveur semble indisponible. Vérifiez que Flask est démarré sur ' + SERVER_URL);
+            });
+    </script>
+</body>
+</html>

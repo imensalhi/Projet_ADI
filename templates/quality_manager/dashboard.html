@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Chargé Qualité - ADI Quality</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>✈️</text></svg>">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-navy: #1E3A8A; /* Bleu roi */
+            --secondary-red: #DC2626; /* Rouge */
+            --light-blue: #3B82F6; /* Bleu clair */
+            --light-gray: #F8FAFC; /* Gris clair */
+            --white: #FFFFFF; /* Blanc */
+        }
+
+        body {
+            background: linear-gradient(135deg, var(--light-gray) 0%, #E2E8F0 100%);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            min-height: 100vh;
+        }
+
+        /* Navbar Styling */
+        .navbar-custom {
+            background: linear-gradient(90deg, var(--primary-navy) 0%, var(--light-blue) 100%);
+            box-shadow: 0 4px 15px rgba(30, 58, 138, 0.2);
+        }
+
+        .btn-logout {
+            padding: 6px 12px;
+            font-size: 0.875rem;
+            border-radius: 20px;
+            background: var(--secondary-red);
+            color: var(--white);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            transition: all 0.3s ease;
+            text-decoration: none;
+        }
+
+        .btn-logout:hover {
+            background: #B91C1C; /* Rouge plus foncé */
+            color: var(--white);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(220, 38, 38, 0.3);
+        }
+
+        /* Header Styling */
+        .dashboard-header {
+            background: var(--white);
+            border-radius: 15px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+            margin-bottom: 2rem;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .dashboard-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 5px;
+            background: linear-gradient(90deg, var(--primary-navy), var(--secondary-red), var(--light-blue));
+        }
+
+        /* Fix pour le titre sur une ligne */
+
+.dashboard-title {
+    white-space: nowrap; /* Keep text on a single line */
+    overflow: visible; /* Prevent clipping of text */
+    font-size: 2rem; /* Adjust font size as needed */
+}
+
+/* Responsive adjustments for title */
+@media (max-width: 768px) {
+    .dashboard-title {
+        font-size: 1.5rem !important;
+        white-space: normal; /* Allow wrapping on smaller screens */
+        line-height: 1.3;
+    }
+}
+
+@media (max-width: 576px) {
+    .dashboard-title {
+        font-size: 1.25rem !important;
+        white-space: normal; /* Allow wrapping on very small screens */
+    }
+}
+
+        /* Card Styling */
+        .card-custom {
+            border: none;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            overflow: hidden;
+            position: relative;
+            background: var(--white);
+        }
+
+        .card-custom:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+        }
+
+        .card-custom::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--light-blue), var(--primary-navy));
+        }
+
+        .card-icon {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1.5rem;
+            font-size: 2rem;
+            color: var(--white);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card-icon::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(45deg, transparent 30%, rgba(255, 255, 255, 0.2) 50%, transparent 70%);
+            transform: translateX(-100%);
+            transition: transform 0.6s;
+        }
+
+        .card-custom:hover .card-icon::before {
+            transform: translateX(100%);
+        }
+
+        .icon-primary {
+            background: linear-gradient(135deg, var(--primary-navy), var(--light-blue));
+        }
+
+        .icon-light-blue {
+            background: linear-gradient(135deg, var(--light-blue), #93C5FD);
+        }
+
+        .icon-danger {
+            background: linear-gradient(135deg, var(--secondary-red), #F87171);
+        }
+
+        /* Button Styling */
+        .btn-custom {
+            border-radius: 25px;
+            padding: 12px 30px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border: none;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .btn-custom::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .btn-custom:hover::before {
+            left: 100%;
+        }
+
+        .btn-primary-custom {
+            background: linear-gradient(135deg, var(--primary-navy), var(--light-blue));
+            color: var(--white);
+        }
+
+        .btn-light-blue-custom {
+            background: linear-gradient(135deg, var(--light-blue), #93C5FD);
+            color: var(--white);
+        }
+
+        .btn-danger-custom {
+            background: linear-gradient(135deg, var(--secondary-red), #F87171);
+            color: var(--white);
+        }
+
+        /* Animation */
+        .animate-fade-in {
+            animation: fadeIn 0.8s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-custom mb-4">
+        <div class="container-fluid">
+            <a class="navbar-brand text-white fw-bold" href="#">
+                <i class="fas fa-industry me-2"></i>ADI Quality
+            </a>
+            <div class="navbar-nav ms-auto">
+                <a href="/logout" class="btn-logout">
+                    <i class="fas fa-sign-out-alt me-1"></i>Déconnexion
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container-fluid px-4">
+        <!-- Header -->
+        <div class="dashboard-header position-relative p-4 animate-fade-in">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <h1 class="fw-bold mb-2 dashboard-title" style="color: var(--primary-navy);">
+                        <i class="fas fa-tachometer-alt me-3"></i>
+                        Dashboard Chargé Qualité / Animateur Qualité
+                    </h1>
+                    <p class="text-muted mb-0 fs-5">
+                        <i class="fas fa-calendar-alt me-2"></i>
+                        Gérez et consultez vos données qualité
+                    </p>
+                </div>
+                <div class="col-md-4 text-end">
+                    <div class="d-flex align-items-center justify-content-end">
+                        <div class="me-3">
+                            <small class="text-muted d-block">Dernière connexion</small>
+                            <span class="fw-bold" id="currentDate"></span>
+                        </div>
+                        <div class="bg-light rounded-circle p-3">
+                            <i class="fas fa-user-tie fa-2x" style="color: var(--primary-navy);"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Action Cards -->
+        <div class="row g-4 animate-fade-in">
+            <!-- Saisie des données -->
+            <div class="col-lg-4 col-md-6">
+                <div class="card-custom h-100">
+                    <div class="card-body text-center p-4">
+                        <div class="card-icon icon-primary">
+                            <i class="fas fa-plus-circle"></i>
+                        </div>
+                        <h4 class="card-title fw-bold mb-3" style="color: var(--primary-navy);">
+                            Saisie des Données
+                        </h4>
+                        <p class="card-text text-muted mb-4">
+                            Enregistrer les données qualité mensuelles de votre atelier
+                        </p>
+                        <a href="/quality/data_entry" class="btn btn-custom btn-primary-custom">
+                            <i class="fas fa-edit me-2"></i>Saisir les données
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Consultation des Données -->
+            <div class="col-lg-4 col-md-6">
+                <div class="card-custom h-100">
+                    <div class="card-body text-center p-4">
+                        <div class="card-icon icon-light-blue">
+                            <i class="fas fa-chart-line"></i>
+                        </div>
+                        <h4 class="card-title fw-bold mb-3" style="color: var(--primary-navy);">
+                            Consultation des Données
+                        </h4>
+                        <p class="card-text text-muted mb-4">
+                            Consulter et analyser les données qualité existantes
+                        </p>
+                        <a href="/admin/consultation" class="btn btn-custom btn-light-blue-custom">
+                            <i class="fas fa-search me-2"></i>Consulter les données
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Accès au Tableau de Bord -->
+            <div class="col-lg-4 col-md-6">
+                <div class="card-custom h-100">
+                    <div class="card-body text-center p-4">
+                        <div class="card-icon icon-danger">
+                            <i class="fas fa-tachometer-alt"></i>
+                        </div>
+                        <h4 class="card-title fw-bold mb-3" style="color: var(--primary-navy);">
+                            Tableau de Bord
+                        </h4>
+                        <p class="card-text text-muted mb-4">
+                            Accéder au tableau de bord pour une vue d'ensemble
+                        </p>
+                        <a href="/quality_manager/graphique" class="btn btn-custom btn-danger-custom">
+                            <i class="fas fa-tachometer-alt me-2"></i>Accéder au tableau
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Set current date
+        document.getElementById('currentDate').textContent = new Date().toLocaleDateString('fr-FR');
+
+        // Load user data
+        async function loadUserData() {
+            try {
+                const response = await fetch('/api/user/current');
+                const userData = await response.json();
+                updateUserDisplay(userData);
+            } catch (error) {
+                console.error('Erreur lors du chargement des données utilisateur:', error);
+            }
+        }
+
+        // Update user display (not used but kept for future compatibility)
+        function updateUserDisplay(userData) {
+        }
+
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', function() {
+            loadUserData();
+            const cards = document.querySelectorAll('.card-custom');
+            cards.forEach((card, index) => {
+                card.style.animationDelay = `${index * 0.2}s`;
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,1230 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Qboard ADI - Tableau de bord de la performance qualité</title>
+    <!-- Favicon -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>✈️</text></svg>">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-red: #DC2626;
+            --navy-blue: #1E3A8A;
+            --white: #FFFFFF;
+            --light-gray: #F8FAFC;
+            --dark-gray: #334155;
+            --marine-blue: #1a237e;
+            --deep-marine: #0d47a1;
+            --accent-red: #d32f2f;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: var(--dark-gray);
+            background: linear-gradient(135deg, #f5f7fa 0%, #e4e7eb 100%);
+            min-height: 100vh;
+        }
+
+        /* Language Toggle - Fixed */
+        .language-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 9999;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 25px;
+            padding: 5px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            backdrop-filter: blur(10px);
+            border: 2px solid rgba(30, 58, 138, 0.1);
+        }
+
+        .lang-btn {
+            border: none;
+            background: transparent;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            color: var(--navy-blue);
+        }
+
+        .lang-btn.active {
+            background: var(--navy-blue);
+            color: white;
+            transform: scale(1.05);
+        }
+
+        .lang-btn:hover {
+            background: var(--primary-red);
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        /* Logo positioned top left - Fixed with white background */
+        .logo-fixed {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 9999;
+            width: 140px;
+            height: 90px;
+            background: #FFFFFF;
+            border-radius: 15px;
+            padding: 10px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+            backdrop-filter: blur(10px);
+            border: 2px solid rgba(30, 58, 138, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: logoFloat 3s ease-in-out infinite;
+        }
+
+        .logo-fixed img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            filter: drop-shadow(0 4px 8px rgba(0,0,0,0.1));
+        }
+
+        /* Hero Section with Video Background */
+        .hero-section {
+            height: 100vh;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .video-background {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            z-index: -2;
+        }
+
+        .hero-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(30, 58, 138, 0.8), rgba(220, 38, 38, 0.6));
+            z-index: -1;
+        }
+
+        .hero-content {
+            color: white;
+            z-index: 1;
+            max-width: 1200px;
+            padding: 0 20px;
+            width: 100%;
+            text-align: center;
+        }
+
+        /* Badge Corporate Design for Platform Name */
+        .platform-badge {
+            display: inline-block;
+            position: relative;
+            margin-bottom: 2rem;
+        }
+
+        .badge-container {
+            display: inline-flex;
+            align-items: center;
+            background: transparent;
+            border-radius: 10px;
+            animation: badgeFloat 4s ease-in-out infinite;
+        }
+
+        .qboard-frame {
+            background: linear-gradient(135deg, rgba(30, 58, 138, 0.7), rgba(26, 35, 126, 0.7));
+            color: var(--white);
+            padding: 12px 20px;
+            margin-right: 5px;
+            border-radius: 12px;
+            font-size: 4.2rem;
+            font-weight: 800;
+            line-height: 1.1;
+            letter-spacing: 1px;
+            text-shadow: 3px 3px 5px rgba(0,0,0,0.4);
+            display: inline-block;
+            font-stretch: semi-expanded;
+        }
+
+        .adi-frame {
+            background: var(--white);
+            color: var(--navy-blue);
+            padding: 12px 20px;
+            border-radius: 12px;
+            font-size: 4.2rem;
+            font-weight: 800;
+            line-height: 1.1;
+            letter-spacing: 1px;
+            text-shadow: 3px 3px 5px rgba(0,0,0,0.4);
+            display: inline-block;
+            position: relative;
+            font-stretch: semi-expanded;
+        }
+
+        .badge-container::before {
+            content: '';
+            position: absolute;
+            top: -10px;
+            right: 10px;
+            width: 25px;
+            height: 25px;
+            background: var(--primary-red);
+            border-radius: 50%;
+            box-shadow: 0 0 15px rgba(220, 38, 38, 0.5);
+            animation: statusPulse 2s infinite;
+            z-index: 1;
+        }
+
+        .platform-subtitle {
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 0.9rem;
+            font-weight: 600;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            margin-top: 8px;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+        }
+
+        .hero-subtitle {
+            font-size: 1.4rem;
+            margin-bottom: 2rem;
+            opacity: 1;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+            animation: subtitleFade 2s ease-in-out infinite alternate;
+            color: #ffffff;
+            font-weight: 400;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px 30px;
+            border-radius: 50px;
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .buttons-container {
+            text-align: center;
+            margin-top: 2rem;
+        }
+
+        .btn-primary-custom {
+            background: var(--white);
+            border: none;
+            padding: 15px 40px;
+            font-size: 1.2rem;
+            font-weight: 600;
+            border-radius: 50px;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 32px rgba(220, 38, 38, 0.3);
+            color: var(--navy-blue);
+        }
+
+        .btn-primary-custom:hover {
+            background: var(--white);
+            transform: translateY(-3px);
+            box-shadow: 0 12px 48px rgba(220, 38, 38, 0.4);
+            color: var(--primary-red);
+        }
+
+        /* Contact Button Positioning */
+        .contact-btn-container {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            z-index: 2;
+        }
+
+        .btn-contact-custom {
+            background: var(--white);
+            border: none;
+            padding: 12px 30px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            border-radius: 50px;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 32px rgba(220, 38, 38, 0.3);
+            color: var(--navy-blue);
+        }
+
+        .btn-contact-custom:hover {
+            background: var(--white);
+            transform: translateY(-3px);
+            box-shadow: 0 12px 48px rgba(220, 38, 38, 0.4);
+            color: var(--primary-red);
+        }
+
+        /* Main Content Sections */
+        .content-section {
+            padding: 60px 0;
+        }
+
+        .content-section:first-of-type {
+            padding-top: 40px;
+        }
+
+        .section-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--navy-blue);
+            margin-bottom: 1rem;
+            position: relative;
+        }
+
+        .section-title::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80px;
+            height: 4px;
+            background: linear-gradient(135deg, var(--primary-red), var(--navy-blue));
+            border-radius: 2px;
+        }
+
+        .section-subtitle {
+            font-size: 1.2rem;
+            color: var(--dark-gray);
+            margin-bottom: 3rem;
+            opacity: 0.8;
+        }
+
+        /* Cards */
+        .feature-card {
+            background: white;
+            border-radius: 20px;
+            padding: 2.5rem;
+            box-shadow: 0 15px 50px rgba(0,0,0,0.08);
+            transition: all 0.4s ease;
+            border: 1px solid rgba(30, 58, 138, 0.1);
+            height: 100%;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .feature-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 5px;
+            background: linear-gradient(135deg, var(--navy-blue), var(--primary-red));
+            transform: scaleX(0);
+            transition: transform 0.4s ease;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-15px);
+            box-shadow: 0 25px 70px rgba(0,0,0,0.15);
+        }
+
+        .feature-card:hover::before {
+            transform: scaleX(1);
+        }
+
+        .feature-icon {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, var(--navy-blue), var(--primary-red));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1.5rem;
+            color: white;
+            font-size: 2rem;
+            animation: iconPulse 2s ease-in-out infinite;
+        }
+
+        .workshop-card {
+            background: linear-gradient(135deg, var(--navy-blue), #3B82F6);
+            color: white;
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .workshop-card:hover {
+            transform: scale(1.05);
+            background: linear-gradient(135deg, var(--primary-red), #EF4444);
+        }
+
+        /* Expertise Sections */
+        .expertise-card {
+            background: white;
+            border-radius: 20px;
+            padding: 2.5rem;
+            box-shadow: 0 15px 50px rgba(0,0,0,0.08);
+            transition: all 0.4s ease;
+            height: 100%;
+            position: relative;
+            overflow: hidden;
+            border: 1px solid rgba(30, 58, 138, 0.1);
+        }
+
+        .expertise-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 5px;
+            background: linear-gradient(135deg, var(--navy-blue), var(--primary-red));
+            transform: scaleX(0);
+            transition: transform 0.4s ease;
+        }
+
+        .expertise-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 25px 70px rgba(0,0,0,0.15);
+        }
+
+        .expertise-card:hover::before {
+            transform: scaleX(1);
+        }
+
+        .expertise-icon {
+            width: 70px;
+            height: 70px;
+            background: linear-gradient(135deg, var(--navy-blue), var(--primary-red));
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1.5rem;
+            color: white;
+            font-size: 1.8rem;
+            animation: iconFloat 3s ease-in-out infinite;
+        }
+
+        .expertise-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .expertise-list li {
+            padding: 8px 0;
+            position: relative;
+            padding-left: 25px;
+            color: var(--dark-gray);
+            transition: color 0.3s ease;
+        }
+
+        .expertise-list li::before {
+            content: '▶';
+            position: absolute;
+            left: 0;
+            color: var(--primary-red);
+            font-size: 0.8rem;
+            top: 10px;
+        }
+
+        .expertise-list li:hover {
+            color: var(--navy-blue);
+            transform: translateX(5px);
+        }
+
+        /* Quality Department Enhanced */
+        .quality-department-card {
+            background: rgba(255, 255, 255, 0.95);
+            color: var(--dark-gray);
+            border-radius: 20px;
+            padding: 2.5rem;
+            box-shadow: 0 15px 50px rgba(0,0,0,0.2);
+            transition: all 0.3s ease;
+            border: 2px solid rgba(220, 38, 38, 0.2);
+            backdrop-filter: blur(10px);
+            animation: cardFloat 6s ease-in-out infinite;
+        }
+
+        .quality-department-card:hover {
+            transform: translateY(-15px) scale(1.02);
+            box-shadow: 0 25px 70px rgba(0,0,0,0.25);
+            border-color: var(--primary-red);
+        }
+
+        .quality-card-title {
+            color: var(--navy-blue);
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .quality-card-subtitle {
+            color: var(--primary-red);
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+
+        .quality-card-text {
+            color: var(--dark-gray);
+            line-height: 1.6;
+        }
+
+        /* Background Sections */
+        .bg-light-section {
+            background: linear-gradient(135deg, var(--light-gray), #E2E8F0);
+        }
+
+        .bg-navy-section {
+            background: linear-gradient(135deg, var(--navy-blue), #3730A3);
+            color: white;
+        }
+
+        .bg-navy-section .section-title {
+            color: white;
+        }
+
+        .bg-navy-section .section-subtitle {
+            color: rgba(255, 255, 255, 0.9);
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+        }
+
+        /* Footer */
+        .footer-section {
+            background: linear-gradient(135deg, var(--dark-gray), #1E293B);
+            color: white;
+            padding: 60px 0 30px;
+        }
+
+        .footer-title {
+            color: var(--primary-red);
+            font-weight: 700;
+            margin-bottom: 1rem;
+        }
+
+        .footer-text {
+            color: rgba(255, 255, 255, 0.8);
+            line-height: 1.7;
+        }
+
+        /* Contact Modal Styles */
+        .contact-info {
+            background: var(--light-gray);
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .contact-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .contact-item i {
+            color: var(--navy-blue);
+            width: 30px;
+            margin-right: 15px;
+            font-size: 1.2rem;
+        }
+
+        .contact-item div {
+            flex: 1;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .qboard-frame, .adi-frame {
+                font-size: 2.5rem;
+                padding: 8px 12px;
+            }
+            
+            .platform-subtitle {
+                font-size: 0.8rem;
+            }
+            
+            .hero-subtitle {
+                font-size: 1rem;
+            }
+            
+            .section-title {
+                font-size: 2rem;
+            }
+
+            .language-toggle {
+                top: 10px;
+                right: 10px;
+            }
+
+            .logo-fixed {
+                top: 10px;
+                left: 10px;
+                width: 120px;
+                height: 80px;
+            }
+
+            .contact-btn-container {
+                bottom: 10px;
+                right: 10px;
+            }
+
+            .btn-contact-custom {
+                padding: 10px 20px;
+                font-size: 1rem;
+            }
+        }
+
+        /* Animations */
+        @keyframes logoFloat {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-8px); }
+        }
+
+        @keyframes badgeFloat {
+            0%, 100% { transform: translateY(0px) scale(1); }
+            50% { transform: translateY(-8px) scale(1.02); }
+        }
+
+        @keyframes statusPulse {
+            0%, 100% { 
+                opacity: 1; 
+                transform: scale(1);
+                box-shadow: 0 0 15px rgba(220, 38, 38, 0.5);
+            }
+            50% { 
+                opacity: 0.7; 
+                transform: scale(1.1);
+                box-shadow: 0 0 25px rgba(220, 38, 38, 0.8);
+            }
+        }
+
+        @keyframes subtitleFade {
+            0% { opacity: 0.9; transform: scale(1); }
+            100% { opacity: 1; transform: scale(1.02); }
+        }
+
+        @keyframes cardFloat {
+            0%, 100% { transform: translateY(0px); }
+            33% { transform: translateY(-8px); }
+            66% { transform: translateY(5px); }
+        }
+
+        @keyframes iconPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        @keyframes iconFloat {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            33% { transform: translateY(-5px) rotate(2deg); }
+            66% { transform: translateY(3px) rotate(-1deg); }
+        }
+
+        /* Hidden class for language switching */
+        .hidden {
+            display: none !important;
+        }
+    </style>
+</head>
+<body>
+    <!-- Language Toggle -->
+    <div class="language-toggle">
+        <button class="lang-btn active" data-lang="fr">FR</button>
+        <button class="lang-btn" data-lang="en">EN</button>
+    </div>
+
+    <!-- Fixed Logo -->
+    <div class="logo-fixed">
+        <img src="{{ url_for('static', filename='images/logo1.png') }}" alt="Logo">
+    </div>
+
+    <!-- Hero Section with Video Background -->
+    <section class="hero-section">
+        <video class="video-background" autoplay muted loop playsinline>
+            <source src="{{ url_for('static', filename='videos/Hutchinson Aerospace 2023.mp4') }}" type="video/mp4">
+            <div style="background: linear-gradient(135deg, #1E3A8A, #DC2626); width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; color: white;">
+                Vidéo en cours de chargement...
+            </div>
+        </video>
+        
+        <div class="hero-overlay"></div>
+        
+        <div class="hero-content" data-aos="fade-up" data-aos-duration="1000">
+            <!-- Badge Corporate Design for Platform Name -->
+            <div class="platform-badge" data-aos="zoom-in" data-aos-delay="300">
+                <div class="badge-container">
+                    <span class="qboard-frame">Qboard</span>
+                    <span class="adi-frame">ADI</span>
+                    <div class="platform-subtitle">
+                        <span class="lang-fr"></span>
+                        <span class="lang-en hidden"></span>
+                    </div>
+                </div>
+            </div>
+            
+            <p class="hero-subtitle" data-aos="fade-up" data-aos-delay="600">
+                <span class="lang-fr">Tableau de bord de la performance qualité ADI</span>
+                <span class="lang-en hidden">Integrated platform for quality monitoring and control in the aerospace industry</span>
+            </p>
+            
+            <div class="buttons-container" data-aos="fade-up" data-aos-delay="800">
+                <a href="{{ url_for('login') }}" class="btn btn-primary-custom">
+                    <span class="icon-plane">✈️</span>
+                    <span class="lang-fr">Accéder à l'Application</span>
+                    <span class="lang-en hidden">Access Application</span>
+                </a>
+            </div>
+        </div>
+
+        <!-- Contact Button -->
+        <div class="contact-btn-container" data-aos="fade-up" data-aos-delay="800">
+            <button class="btn btn-contact-custom" data-bs-toggle="modal" data-bs-target="#contactModal">
+                <i class="fas fa-phone me-2"></i>
+                <span class="lang-fr">Contact</span>
+                <span class="lang-en hidden">Contact</span>
+            </button>
+        </div>
+    </section>
+
+    <!-- About Hutchinson Section -->
+    <section class="content-section bg-light-section">
+        <div class="container">
+            <div class="text-center mb-5" data-aos="fade-up" data-aos-duration="800">
+                <h2 class="section-title">Hutchinson Aerospace</h2>
+                <p class="section-subtitle">
+                    <span class="lang-fr">Excellence et Innovation dans l'Aéronautique</span>
+                    <span class="lang-en hidden">Excellence and Innovation in Aerospace</span>
+                </p>
+            </div>
+            
+            <div class="row align-items-center">
+                <div class="col-lg-8" data-aos="fade-right" data-aos-duration="800">
+                    <p class="fs-5 mb-4 lang-fr">
+                        <strong>Hutchinson</strong> est un leader mondial dans la conception et la fabrication de solutions innovantes pour l'industrie aéronautique. Avec plus de 13 ans d'expertise, nous développons des technologies de pointe pour les secteurs Aerospace, Defense & Industry (ADI).
+                    </p>
+                    <p class="fs-5 mb-4 lang-en hidden">
+                        <strong>Hutchinson</strong> is a global leader in the design and manufacturing of innovative solutions for the aerospace industry. With over 13 years of expertise, we develop cutting-edge technologies for Aerospace, Defense & Industry (ADI) sectors.
+                    </p>
+                    <p class="mb-4 lang-fr">
+                        Notre site de Sousse en Tunisie représente un centre d'excellence technologique, spécialisé dans la production de composants critiques pour l'aviation. Nous nous engageons à maintenir les plus hauts standards de qualité et de sécurité.
+                    </p>
+                    <p class="mb-4 lang-en hidden">
+                        Our Sousse site in Tunisia represents a technological center of excellence, specialized in the production of critical components for aviation. We are committed to maintaining the highest quality and safety standards.
+                    </p>
+                </div>
+                <div class="col-lg-4" data-aos="fade-left" data-aos-duration="800">
+                    <div class="feature-card text-center">
+                        <i class="fas fa-building fa-3x text-primary mb-3" style="color: var(--navy-blue)!important;"></i>
+                        <h4>Hutchinson Sousse</h4>
+                        <p><strong>ZI Sidi Abdelhamid</strong><br>4061 Sousse, TUNISIE</p>
+                        <div class="mt-3">
+                            <span class="badge bg-primary me-2" style="background: var(--navy-blue)!important;">Aerospace</span>
+                            <span class="badge bg-danger me-2" style="background: var(--primary-red)!important;">Defense</span>
+                            <span class="badge bg-success">Industry</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Expertise Sections -->
+    <section class="content-section">
+        <div class="container">
+            <div class="text-center mb-5" data-aos="fade-up" data-aos-duration="800">
+                <h2 class="section-title">
+                    <span class="lang-fr">Nos Domaines d'Expertise</span>
+                    <span class="lang-en hidden">Our Areas of Expertise</span>
+                </h2>
+                <p class="section-subtitle">
+                    <span class="lang-fr">Solutions Innovantes pour les Industries de Pointe</span>
+                    <span class="lang-en hidden">Innovative Solutions for Leading Industries</span>
+                </p>
+            </div>
+            
+            <div class="row">
+                <div class="col-lg-4 mb-4" data-aos="fade-up" data-aos-delay="100" data-aos-duration="800">
+                    <div class="expertise-card">
+                        <div class="expertise-icon">
+                            <i class="fas fa-plane"></i>
+                        </div>
+                        <h4 class="mb-3" style="color: var(--navy-blue);">
+                            <span class="lang-fr">Aéronautique</span>
+                            <span class="lang-en hidden">Aerospace</span>
+                        </h4>
+                        <p class="mb-3">
+                            <span class="lang-fr">Solutions pour l'industrie aéronautique avec les plus hauts standards de qualité.</span>
+                            <span class="lang-en hidden">Solutions for aerospace industry with the highest quality standards.</span>
+                        </p>
+                        <ul class="expertise-list">
+                            <li class="lang-fr">Composants moteur</li>
+                            <li class="lang-fr">Systèmes d'étanchéité</li>
+                            <li class="lang-fr">Isolation thermique</li>
+                            <li class="lang-en hidden">Engine components</li>
+                            <li class="lang-en hidden">Sealing systems</li>
+                            <li class="lang-en hidden">Thermal insulation</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="col-lg-4 mb-4" data-aos="fade-up" data-aos-delay="200" data-aos-duration="800">
+                    <div class="expertise-card">
+                        <div class="expertise-icon">
+                            <i class="fas fa-shield-alt"></i>
+                        </div>
+                        <h4 class="mb-3" style="color: var(--navy-blue);">
+                            <span class="lang-fr">Défense</span>
+                            <span class="lang-en hidden">Defense</span>
+                        </h4>
+                        <p class="mb-3">
+                            <span class="lang-fr">Expertise dans les applications de défense avec sécurité et fiabilité maximales.</span>
+                            <span class="lang-en hidden">Expertise in defense applications with maximum security and reliability.</span>
+                        </p>
+                        <ul class="expertise-list">
+                            <li class="lang-fr">Équipements tactiques</li>
+                            <li class="lang-fr">Systèmes de protection</li>
+                            <li class="lang-fr">Composites avancés</li>
+                            <li class="lang-en hidden">Tactical equipment</li>
+                            <li class="lang-en hidden">Protection systems</li>
+                            <li class="lang-en hidden">Advanced composites</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="col-lg-4 mb-4" data-aos="fade-up" data-aos-delay="300" data-aos-duration="800">
+                    <div class="expertise-card">
+                        <div class="expertise-icon">
+                            <i class="fas fa-industry"></i>
+                        </div>
+                        <h4 class="mb-3" style="color: var(--navy-blue);">
+                            <span class="lang-fr">Industrie</span>
+                            <span class="lang-en hidden">Industry</span>
+                        </h4>
+                        <p class="mb-3">
+                            <span class="lang-fr">Solutions industrielles innovantes pour les secteurs les plus exigeants.</span>
+                            <span class="lang-en hidden">Innovative industrial solutions for the most demanding sectors.</span>
+                        </p>
+                        <ul class="expertise-list">
+                            <li class="lang-fr">Automatisation</li>
+                            <li class="lang-fr">Contrôle qualité</li>
+                            <li class="lang-fr">Optimisation process</li>
+                            <li class="lang-en hidden">Automation</li>
+                            <li class="lang-en hidden">Quality control</li>
+                            <li class="lang-en hidden">Process optimization</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Quality Department Section -->
+    <section class="content-section bg-navy-section">
+        <div class="container">
+            <div class="text-center mb-5" data-aos="fade-up" data-aos-duration="800">
+                <h2 class="section-title">
+                    <span class="lang-fr">Département Qualité ADI</span>
+                    <span class="lang-en hidden">ADI Quality Department</span>
+                </h2>
+                <p class="section-subtitle">
+                    <span class="lang-fr">Excellence Opérationnelle et Contrôle Qualité</span>
+                    <span class="lang-en hidden">Operational Excellence and Quality Control</span>
+                </p>
+            </div>
+            
+            <div class="row mt-5">
+                <div class="col-md-4 mb-4" data-aos="flip-left" data-aos-delay="100" data-aos-duration="800">
+                    <div class="quality-department-card text-center">
+                        <div class="feature-icon">
+                            <i class="fas fa-chart-line"></i>
+                        </div>
+                        <h5 class="quality-card-title">
+                            <span class="lang-fr">Suivi Performance</span>
+                            <span class="lang-en hidden">Performance Monitoring</span>
+                        </h5>
+                        <p class="quality-card-text lang-fr">Surveillance continue des indicateurs qualité en temps réel</p>
+                        <p class="quality-card-text lang-en hidden">Continuous monitoring of quality indicators in real time</p>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-4" data-aos="flip-left" data-aos-delay="300" data-aos-duration="800">
+                    <div class="quality-department-card text-center">
+                        <div class="feature-icon">
+                            <i class="fas fa-shield-alt"></i>
+                        </div>
+                        <h5 class="quality-card-title">
+                            <span class="lang-fr">Contrôle Qualité</span>
+                            <span class="lang-en hidden">Quality Control</span>
+                        </h5>
+                        <p class="quality-card-text lang-fr">Processus rigoureux de validation et certification</p>
+                        <p class="quality-card-text lang-en hidden">Rigorous validation and certification processes</p>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-4" data-aos="flip-left" data-aos-delay="500" data-aos-duration="800">
+                    <div class="quality-department-card text-center">
+                        <div class="feature-icon">
+                            <i class="fas fa-cogs"></i>
+                        </div>
+                        <h5 class="quality-card-title">
+                            <span class="lang-fr">Amélioration Continue</span>
+                            <span class="lang-en hidden">Continuous Improvement</span>
+                        </h5>
+                        <p class="quality-card-text lang-fr">Optimisation permanente des processus de production</p>
+                        <p class="quality-card-text lang-en hidden">Permanent optimization of production processes</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Workshops Section -->
+    <section class="content-section bg-light-section">
+        <div class="container">
+            <div class="text-center mb-5" data-aos="fade-up" data-aos-duration="800">
+                <h2 class="section-title">
+                    <span class="lang-fr">Nos Ateliers de Production</span>
+                    <span class="lang-en hidden">Our Production Workshops</span>
+                </h2>
+                <p class="section-subtitle">
+                    <span class="lang-fr">Expertise Technique et Savoir-faire Industriel</span>
+                    <span class="lang-en hidden">Technical Expertise and Industrial Know-how</span>
+                </p>
+            </div>
+            
+            <div class="row">
+                <div class="col-lg-6 mb-4" data-aos="fade-right" data-aos-duration="800">
+                    <div class="workshop-card">
+                        <h5><i class="fas fa-ring me-2"></i>
+                            <span class="lang-fr">Manchon</span>
+                            <span class="lang-en hidden">Sleeve</span>
+                        </h5>
+                        <p class="mb-0 lang-fr">Production de manchons haute performance pour connexions hydrauliques et pneumatiques.</p>
+                        <p class="mb-0 lang-en hidden">Production of high-performance sleeves for aerospace hydraulic and pneumatic connections.</p>
+                    </div>
+                    <div class="workshop-card">
+                        <h5><i class="fas fa-compress-alt me-2"></i>
+                            <span class="lang-fr">Collier de Fixation</span>
+                            <span class="lang-en hidden">Fixing Clamp</span>
+                        </h5>
+                        <p class="mb-0 lang-fr">Fabrication de systèmes de fixation sécurisés pour composants critiques d'aéronefs.</p>
+                        <p class="mb-0 lang-en hidden">Manufacturing of secure fixing systems for critical aircraft components.</p>
+                    </div>
+                    <div class="workshop-card">
+                        <h5><i class="fas fa-server me-2"></i>
+                            <span class="lang-fr">Rack</span>
+                            <span class="lang-en hidden">Rack</span>
+                        </h5>
+                        <p class="mb-0 lang-fr">Conception et assemblage de racks structurels pour équipements embarqués.</p>
+                        <p class="mb-0 lang-en hidden">Design and assembly of structural racks for onboard equipment.</p>
+                    </div>
+                    <div class="workshop-card">
+                        <h5><i class="fas fa-industry me-2"></i>
+                            <span class="lang-fr">Moulage</span>
+                            <span class="lang-en hidden">Molding</span>
+                        </h5>
+                        <p class="mb-0 lang-fr">Moulage de précision pour pièces complexes en polymères techniques.</p>
+                        <p class="mb-0 lang-en hidden">Precision molding for complex technical polymer parts.</p>
+                    </div>
+                </div>
+                <div class="col-lg-6 mb-4" data-aos="fade-left" data-aos-duration="800">
+                    <div class="workshop-card">
+                        <h5><i class="fas fa-fire me-2"></i>
+                            <span class="lang-fr">Isolation Thermique</span>
+                            <span class="lang-en hidden">Thermal Insulation</span>
+                        </h5>
+                        <p class="mb-0 lang-fr">Solutions d'isolation haute température pour moteurs et systèmes propulsifs.</p>
+                        <p class="mb-0 lang-en hidden">High-temperature insulation solutions for engines and propulsion systems.</p>
+                    </div>
+                    <div class="workshop-card">
+                        <h5><i class="fas fa-wind me-2"></i>
+                            <span class="lang-fr">Isolation Souple</span>
+                            <span class="lang-en hidden">Flexible Insulation</span>
+                        </h5>
+                        <p class="mb-0 lang-fr">Développement d'isolations flexibles pour applications dynamiques.</p>
+                        <p class="mb-0 lang-en hidden">Development of flexible insulations for dynamic applications.</p>
+                    </div>
+                    <div class="workshop-card">
+                        <h5><i class="fas fa-layer-group me-2"></i>
+                            <span class="lang-fr">Composite</span>
+                            <span class="lang-en hidden">Composite</span>
+                        </h5>
+                        <p class="mb-0 lang-fr">Fabrication de structures composites légères et résistantes.</p>
+                        <p class="mb-0 lang-en hidden">Manufacturing of lightweight and resistant composite structures.</p>
+                    </div>
+                    <div class="workshop-card">
+                        <h5><i class="fas fa-eye me-2"></i>
+                            <span class="lang-fr">Atelier de Visualisation</span>
+                            <span class="lang-en hidden">Visualization Workshop</span>
+                        </h5>
+                        <p class="mb-0 lang-fr">Produits spécifiques pour Secteur ferroviaire</p>
+                        <p class="mb-0 lang-en hidden">Specific products for Railway sector</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer Section -->
+    <footer class="footer-section">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 mx-auto text-center" data-aos="fade-up" data-aos-duration="800">
+                    <p class="footer-text fs-5 mb-4">
+                        <span class="lang-fr">Notre plateforme ADI vous donne accès en temps réel à tous les indicateurs qualité pour une gestion optimale de la performance.</span>
+                        <span class="lang-en hidden">Our ADI platform gives you real-time access to all quality indicators for optimal performance management.</span>
+                    </p>
+                    <div class="row mt-5">
+                        <div class="col-md-4 mb-3" data-aos="zoom-in" data-aos-delay="100" data-aos-duration="800">
+                            <div class="feature-icon mx-auto mb-3">
+                                <i class="fas fa-clock"></i>
+                            </div>
+                            <h6 class="text-white">
+                                <span class="lang-fr">Temps Réel</span>
+                                <span class="lang-en hidden">Real Time</span>
+                            </h6>
+                        </div>
+                        <div class="col-md-4 mb-3" data-aos="zoom-in" data-aos-delay="200" data-aos-duration="800">
+                            <div class="feature-icon mx-auto mb-3">
+                                <i class="fas fa-trophy"></i>
+                            </div>
+                            <h6 class="text-white">
+                                <span class="lang-fr">Gestion de la performance</span>
+                                <span class="lang-en hidden">Performance Management</span>
+                            </h6>
+                        </div>
+                        <div class="col-md-4 mb-3" data-aos="zoom-in" data-aos-delay="300" data-aos-duration="800">
+                            <div class="feature-icon mx-auto mb-3">
+                                <i class="fas fa-users"></i>
+                            </div>
+                            <h6 class="text-white">
+                                <span class="lang-fr">Équipe Experte</span>
+                                <span class="lang-en hidden">Expert Team</span>
+                            </h6>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row mt-5 pt-4 border-top border-secondary">
+                <div class="col-12 text-center">
+                    <p class="footer-text mb-0">
+                        © 2025 Hutchinson Aerospace - 
+                        <span class="lang-fr">L'avenir de l'excellence aéronautique commence ici</span>
+                        <span class="lang-en hidden">The future of aerospace excellence starts here</span>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Contact Modal -->
+    <div class="modal fade" id="contactModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header" style="background: var(--navy-blue); color: white;">
+                    <h5 class="modal-title">
+                        <i class="fas fa-phone me-2"></i>
+                        <span class="lang-fr">.“
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-8 mx-auto">
+                            <div class="contact-info">
+                                <h5 class="text-center mb-4" style="color: var(--navy-blue);">
+                                    <span class="lang-fr">Aerospace Defense & Industry</span>
+                                    <span class="lang-en hidden">Aerospace Defense & Industry</span>
+                                </h5>
+                                
+                                <div class="contact-item">
+                                    <i class="fas fa-building"></i>
+                                    <div>
+                                        <strong>HUTCHINSON</strong><br>
+                                        ZI Sidi Abdelhamid<br>
+                                        4061 Sousse TUNISIE
+                                    </div>
+                                </div>
+                                
+                                <div class="contact-item">
+                                    <i class="fas fa-phone"></i>
+                                    <div>
+                                        <strong><span class="lang-fr">Contact Principal</span><span class="lang-en hidden">Main Contact</span></strong><br>
+                                        +216 73 321 351<br>
+                                        contact@hutchinson.com.tn
+                                    </div>
+                                </div>
+                                
+                                <div class="contact-item">
+                                    <i class="fas fa-clock"></i>
+                                    <div>
+                                        <strong><span class="lang-fr">Horaires administratifs</span><span class="lang-en hidden">Hours</span></strong><br>
+                                        <span class="lang-fr">Lundi - Vendredi : 08h00 - 17h30</span><br>
+                                        <span class="lang-fr">Samedi - Dimanche : Fermé</span>
+                                        <span class="lang-en hidden">Monday - Friday: 08:00 - 17:30</span><br>
+                                        <span class="lang-en hidden">Saturday - Sunday: Closed</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.js"></script>
+    
+    <script>
+        // SOLUTION CORRIGÉE - Retour immédiat au début de page
+        
+        // 1. Forcer la position en haut immédiatement
+        if ('scrollRestoration' in history) {
+            history.scrollRestoration = 'manual';
+        }
+        
+        // 2. Position immédiate au chargement
+        window.scrollTo(0, 0);
+        document.documentElement.scrollTop = 0;
+        document.body.scrollTop = 0;
+        
+        // 3. Événements pour forcer le retour en haut
+        window.addEventListener('beforeunload', function() {
+            window.scrollTo(0, 0);
+            document.documentElement.scrollTop = 0;
+            document.body.scrollTop = 0;
+        });
+        
+        // 4. Confirmation au chargement complet
+        window.addEventListener('load', function() {
+            // Immédiat
+            window.scrollTo(0, 0);
+            document.documentElement.scrollTop = 0;
+            document.body.scrollTop = 0;
+            
+            // Double vérification après un court délai
+            setTimeout(function() {
+                window.scrollTo(0, 0);
+                document.documentElement.scrollTop = 0;
+                document.body.scrollTop = 0;
+            }, 1);
+        });
+        
+        // 5. Intercepter le comportement DOMContentLoaded
+        document.addEventListener('DOMContentLoaded', function() {
+            window.scrollTo(0, 0);
+            document.documentElement.scrollTop = 0;
+            document.body.scrollTop = 0;
+        });
+
+        // Initialize AOS animations
+        AOS.init({
+            duration: 800,
+            once: false,
+            offset: 100,
+            mirror: true
+        });
+
+        // Language Toggle Functionality
+        const langButtons = document.querySelectorAll('.lang-btn');
+        const frElements = document.querySelectorAll('.lang-fr');
+        const enElements = document.querySelectorAll('.lang-en');
+
+        langButtons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const selectedLang = btn.getAttribute('data-lang');
+                
+                // Update button states
+                langButtons.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                
+                // Toggle language content
+                if (selectedLang === 'fr') {
+                    frElements.forEach(el => el.classList.remove('hidden'));
+                    enElements.forEach(el => el.classList.add('hidden'));
+                    document.documentElement.lang = 'fr';
+                } else {
+                    frElements.forEach(el => el.classList.add('hidden'));
+                    enElements.forEach(el => el.classList.remove('hidden'));
+                    document.documentElement.lang = 'en';
+                }
+            });
+        });
+
+        // Smooth scrolling for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+
+        // Enhanced parallax effect
+        let ticking = false;
+        
+        function updateParallax() {
+            const scrolled = window.pageYOffset;
+            const parallax = document.querySelector('.video-background');
+            if (parallax) {
+                const speed = scrolled * 0.3;
+                parallax.style.transform = `translateY(-${speed}px)`;
+            }
+            ticking = false;
+        }
+
+        window.addEventListener('scroll', function() {
+            if (!ticking) {
+                requestAnimationFrame(updateParallax);
+                ticking = true;
+            }
+        });
+
+        // Refresh AOS on window resize
+        window.addEventListener('resize', function() {
+            AOS.refresh();
+        });
+
+        // Enhanced scroll animations for elements
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                }
+            });
+        }, observerOptions);
+
+        // Apply observer to cards and sections
+        document.querySelectorAll('.feature-card, .expertise-card, .workshop-card, .quality-department-card').forEach(el => {
+            el.style.opacity = '0';
+            el.style.transform = 'translateY(30px)';
+            el.style.transition = 'all 0.6s ease';
+            observer.observe(el);
+        });
+    </script>
+</body>
+</html>

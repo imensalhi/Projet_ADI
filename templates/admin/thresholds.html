@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestion des Seuils - ADI Quality</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>✈️</text></svg>">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #1E3A8A;
+            --secondary: #DC2626;
+            --success: #10B981;
+            --warning: #F59E0B;
+            --indicator-color: #3B82F6;
+            --cnq-color: #1E40AF;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f8f9fa;
+        }
+        
+        .header {
+            background: white;
+            padding: 1rem 2rem;
+            box-shadow: 0 2px 15px rgba(0,0,0,0.05);
+            margin-bottom: 2rem;
+        }
+        
+        .main-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 1rem;
+        }
+        
+        .card {
+            border: none;
+            border-radius: 12px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.05);
+            margin-bottom: 2rem;
+        }
+        
+        .card-header {
+            background: linear-gradient(90deg, var(--primary), #1e40af);
+            color: white;
+            border-radius: 12px 12px 0 0 !important;
+            padding: 1.5rem;
+        }
+        
+        .atelier-card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 3px 15px rgba(0,0,0,0.05);
+            transition: all 0.3s ease;
+        }
+        
+        .atelier-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+        }
+        
+        .atelier-header {
+            background: linear-gradient(135deg, var(--primary), #1e40af);
+            color: white;
+            padding: 1rem 1.5rem;
+            border-radius: 12px 12px 0 0;
+            font-weight: 600;
+        }
+        
+        .atelier-body {
+            padding: 1.5rem;
+            background: white;
+        }
+        
+        .cnq-form-row {
+            margin-bottom: 1rem;
+        }
+        
+        .threshold-item {
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid #e9ecef;
+            transition: background-color 0.3s ease;
+        }
+        
+        .threshold-item:last-child {
+            border-bottom: none;
+        }
+        
+        .threshold-item:hover {
+            background-color: #f8f9fa;
+        }
+        
+        .threshold-label {
+            font-weight: 600;
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+        }
+        
+        .threshold-value {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--secondary);
+        }
+        
+        .threshold-meta {
+            font-size: 0.85rem;
+            color: #6c757d;
+            margin-top: 0.25rem;
+        }
+        
+        .btn-primary {
+            background: var(--primary);
+            border-color: var(--primary);
+        }
+        
+        .btn-primary:hover {
+            background: #1e40af;
+            border-color: #1e40af;
+        }
+        
+        .btn-edit {
+            background: var(--warning);
+            border-color: var(--warning);
+            color: white;
+        }
+        
+        .btn-edit:hover {
+            background: #d97706;
+            border-color: #d97706;
+            color: white;
+        }
+        
+        .btn-cnq {
+            background: var(--cnq-color);
+            border-color: var(--cnq-color);
+            color: white;
+        }
+        
+        .btn-cnq:hover {
+            background: #1e3a8a;
+            border-color: #1e3a8a;
+            color: white;
+        }
+
+        .btn-cnq-threshold {
+            background: linear-gradient(135deg, #1e3a8a, #1e40af);
+            border: none;
+            color: white;
+        }
+        
+        .btn-cnq-threshold:hover {
+            background: linear-gradient(135deg, #1e40af, #1e3a8a);
+            color: white;
+        }
+
+        .btn-modify-threshold {
+            background: var(--secondary);
+            border-color: var(--secondary);
+            color: white;
+        }
+
+        .btn-modify-threshold:hover {
+            background: #b91c1c;
+            border-color: #b91c1c;
+            color: white;
+        }
+        
+        .indicator-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            margin-right: 1rem;
+            background: linear-gradient(135deg, var(--indicator-color), #2563eb);
+            color: white;
+        }
+        
+        .form-control:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 0.2rem rgba(30, 58, 138, 0.25);
+        }
+        
+        .form-select:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 0.2rem rgba(30, 58, 138, 0.25);
+        }
+
+        /* Styles pour la section CNQ simplifiée */
+        .cnq-section {
+            background: linear-gradient(135deg, var(--cnq-color), #1e3a8a);
+            color: white;
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .cnq-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+        }
+
+        .cnq-form-container {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .cnq-form-title {
+            color: #e5e7eb;
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h4 class="mb-0 text-primary">
+                    <i class="fas fa-sliders-h me-2"></i>
+                    Gestion des Seuils Qualité
+                </h4>
+            </div>
+            <a href="/dashboard" class="btn btn-outline-primary">
+                <i class="fas fa-arrow-left me-1"></i>
+                Retour au Dashboard
+            </a>
+        </div>
+    </div>
+
+    <div class="main-container">
+        <!-- Messages Flash -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="mb-4">
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ 'danger' if category == 'error' else category }} alert-dismissible fade show" role="alert">
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+
+        <!-- CNQ Section Simplifiée -->
+        <div class="cnq-section">
+            <div class="cnq-title">
+                <i class="fas fa-industry me-3"></i>
+                CNQ - Coût de Non-Qualité (Toute l'Usine)
+            </div>
+            
+            <div class="row">
+                <div class="col-md-8">
+                    <div class="cnq-form-container">
+                        <div class="cnq-form-title">Ajouter une nouvelle valeur CNQ</div>
+                        <form action="/admin/update_cnq" method="POST" class="mb-0">
+                            <div class="row cnq-form-row">
+                                <div class="col-md-4">
+                                    <label for="cnq_value" class="form-label text-light">Valeur CNQ (%)</label>
+                                    <input type="number" step="0.01" max="100" min="0" class="form-control" 
+                                           id="cnq_value" name="cnq_value" placeholder="Ex: 5.5" required>
+                                </div>
+                                <div class="col-md-3">
+                                    <label for="cnq_month" class="form-label text-light">Mois</label>
+                                    <select class="form-select" id="cnq_month" name="cnq_month" required>
+                                        <option value="">Sélectionner</option>
+                                        <option value="1">Janvier</option>
+                                        <option value="2">Février</option>
+                                        <option value="3">Mars</option>
+                                        <option value="4">Avril</option>
+                                        <option value="5">Mai</option>
+                                        <option value="6">Juin</option>
+                                        <option value="7">Juillet</option>
+                                        <option value="8">Août</option>
+                                        <option value="9">Septembre</option>
+                                        <option value="10">Octobre</option>
+                                        <option value="11">Novembre</option>
+                                        <option value="12">Décembre</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <label for="cnq_year" class="form-label text-light">Année</label>
+                                    <select class="form-select" id="cnq_year" name="cnq_year" required>
+                                        <option value="">Sélectionner</option>
+                                        <option value="2024">2024</option>
+                                        <option value="2025">2025</option>
+                                        <option value="2026">2026</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-2 d-flex align-items-end">
+                                    <button type="submit" class="btn btn-light w-100 fw-bold">
+                                        <i class="fas fa-save me-1"></i>
+                                        Ajouter
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                <div class="col-md-4 d-flex align-items-center">
+                    <button type="button" class="btn btn-light btn-lg w-100" 
+                            data-bs-toggle="modal" data-bs-target="#cnqThresholdModal">
+                        <i class="fas fa-sliders-h me-2"></i>
+                        Modifier le Seuil CNQ
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bouton Modifier Seuil -->
+        <div class="mb-4">
+            <button type="button" class="btn btn-modify-threshold" data-bs-toggle="modal" data-bs-target="#updateThresholdModal">
+                <i class="fas fa-plus me-2"></i>
+                Modifier un Seuil
+            </button>
+        </div>
+
+        <!-- Seuils par Atelier -->
+        <div class="row">
+            {% for atelier, seuils in seuils_by_atelier.items() %}
+            {% if atelier in ['Colliers', 'Composite', 'Isolant souple', 'Manchons', 'Moulage', 'Racks', 'Protections thermiques', 'Système de visualisation', 'UAP1', 'UAP2', 'Total'] %}
+            <div class="col-lg-6 col-xl-4 mb-4">
+                <div class="atelier-card">
+                    <div class="atelier-header">
+                        <i class="fas fa-industry me-2"></i>
+                        {{ atelier }}
+                    </div>
+                    <div class="atelier-body">
+                        {% for indicateur, seuil in seuils.items() %}
+                        {% if 'CNQ' not in indicateur %}
+                        <div class="threshold-item">
+                            <div class="d-flex align-items-center">
+                                <div class="indicator-icon">
+                                    {% if 'PPM' in indicateur %}
+                                        <i class="fas fa-exclamation-triangle"></i>
+                                    {% elif 'Rebut' in indicateur %}
+                                        <i class="fas fa-trash"></i>
+                                    {% elif 'Retouche' in indicateur %}
+                                        <i class="fas fa-tools"></i>
+                                    {% elif 'Coût' in indicateur %}
+                                        <i class="fas fa-coins"></i>
+                                    {% elif 'reclamation' in indicateur.lower() or 'réclamation' in indicateur.lower() %}
+                                        <i class="fas fa-exclamation-circle"></i>
+                                    {% else %}
+                                        <i class="fas fa-chart-line"></i>
+                                    {% endif %}
+                                </div>
+                                <div class="flex-grow-1">
+                                    <div class="threshold-label">{{ indicateur }}</div>
+                                    <div class="threshold-value">
+                                        {{ seuil.valeur_seuil }}
+                                        {% if 'PPM' in indicateur %}ppm
+                                        {% elif 'Taux' in indicateur %}%
+                                        {% elif 'Coût' in indicateur %}TND
+                                        {% elif 'reclamation' in indicateur.lower() or 'réclamation' in indicateur.lower() %}réclamations
+                                        {% endif %}
+                                    </div>
+                                    <div class="threshold-meta">
+                                        Modifié par {{ seuil.modifie_by }} le {{ seuil.date_modification.split('T')[0] if seuil.date_modification else 'N/A' }}
+                                    </div>
+                                </div>
+                                <div>
+                                    <button type="button" class="btn btn-sm btn-edit" 
+                                            onclick="editThreshold('{{ atelier }}', '{{ indicateur }}', '{{ seuil.valeur_seuil }}', '{{ seuil.id|default() }}')"
+                                            title="Modifier ce seuil">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Modal Modifier Seuil CNQ -->
+    <div class="modal fade" id="cnqThresholdModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header" style="background: linear-gradient(135deg, #1E40AF, #1e3a8a); color: white;">
+                    <h5 class="modal-title">
+                        <i class="fas fa-percentage me-2"></i>
+                        Modifier le Seuil CNQ
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <form action="/admin/update_cnq" method="POST">
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label for="cnq_threshold_value" class="form-label">Nouveau Seuil CNQ (%)</label>
+                            <input type="number" step="0.01" max="100" min="0" class="form-control" 
+                                   id="cnq_threshold_value" name="cnq_threshold_value" 
+                                   placeholder="Ex: 15.0" required>
+                        </div>
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle me-2"></i>
+                            <strong>Information :</strong> Ce seuil sera utilisé pour évaluer la performance globale de l'usine en termes de coûts de non-qualité.
+                        </div>
+                        <div class="alert alert-warning">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            <strong>Attention :</strong> La modification de ce seuil affectera tous les graphiques et analyses CNQ.
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                        <button type="submit" class="btn btn-cnq-threshold">
+                            <i class="fas fa-save me-1"></i>
+                            Mettre à Jour le Seuil CNQ
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Modifier Seuil -->
+    <div class="modal fade" id="updateThresholdModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Modifier un Seuil</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <form action="/admin/update_threshold" method="POST">
+                    <div class="modal-body">
+                        <input type="hidden" id="threshold_id" name="threshold_id">
+                        <div class="mb-3">
+                            <label for="atelier" class="form-label">Atelier *</label>
+                            <select class="form-select" id="atelier" name="atelier" required>
+                                <option value="">Sélectionner un atelier</option>
+                                <option value="Colliers">Colliers</option>
+                                <option value="Composite">Composite</option>
+                                <option value="Isolant souple">Isolant souple</option>
+                                <option value="Manchons">Manchons</option>
+                                <option value="Moulage">Moulage</option>
+                                <option value="Racks">Racks</option>
+                                <option value="Protections thermiques">Protections thermiques</option>
+                                <option value="Système de visualisation">Système de visualisation</option>
+                                <option value="UAP1">UAP1</option>
+                                <option value="UAP2">UAP2</option>
+                                <option value="Total">Total</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="indicateur" class="form-label">Indicateur *</label>
+                            <select class="form-select" id="indicateur" name="indicateur" required>
+                                <option value="Nombre de reclamation" selected>Nombre de reclamation</option>
+                                <option value="PPM Officiel">PPM Officiel</option>
+                                <option value="PPM Non Officiel">PPM Non Officiel</option>
+                                <option value="Taux de Rebut">Taux de Rebut</option>
+                                <option value="Taux de Retouche">Taux de Retouche</option>
+                                <option value="Coût de Rebut">Coût de Rebut</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="valeur_seuil" class="form-label">Valeur du Seuil *</label>
+                            <input type="number" step="0.01" class="form-control" id="valeur_seuil" name="valeur_seuil" required>
+                            <div class="form-text">
+                                L'unité dépend de l'indicateur sélectionné (ppm, %, TND, nombre)
+                            </div>
+                        </div>
+                        <div class="alert alert-warning">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            <strong>Attention :</strong> La modification d'un seuil affectera tous les graphiques et analyses futures.
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                        <button type="submit" class="btn btn-primary">Mettre à Jour le Seuil</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Fonction pour éditer un seuil spécifique
+        function editThreshold(atelier, indicateur, valeurActuelle, thresholdId) {
+            document.getElementById('atelier').value = atelier;
+            document.getElementById('indicateur').value = indicateur;
+            document.getElementById('valeur_seuil').value = valeurActuelle;
+            document.getElementById('threshold_id').value = thresholdId || '';
+            new bootstrap.Modal(document.getElementById('updateThresholdModal')).show();
+        }
+        
+        // Validation du formulaire seuil CNQ
+        document.querySelector('#cnqThresholdModal form').addEventListener('submit', function(e) {
+            const thresholdValue = parseFloat(document.getElementById('cnq_threshold_value').value);
+            
+            if (!thresholdValue) {
+                e.preventDefault();
+                alert('La valeur du seuil CNQ est obligatoire');
+                return;
+            }
+            
+            if (thresholdValue < 0 || thresholdValue > 100) {
+                e.preventDefault();
+                alert('Le seuil CNQ doit être entre 0 et 100%');
+                return;
+            }
+            
+            if (thresholdValue < 1) {
+                if (!confirm('Ce seuil CNQ semble très bas (' + thresholdValue + '%). Êtes-vous sûr de vouloir continuer ?')) {
+                    e.preventDefault();
+                    return;
+                }
+            }
+            
+            if (thresholdValue > 30) {
+                if (!confirm('Ce seuil CNQ semble très élevé (' + thresholdValue + '%). Êtes-vous sûr de vouloir continuer ?')) {
+                    e.preventDefault();
+                    return;
+                }
+            }
+        });
+
+        // Validation du formulaire des seuils
+        document.querySelector('#updateThresholdModal form').addEventListener('submit', function(e) {
+            const valeur = parseFloat(document.getElementById('valeur_seuil').value);
+            const indicateur = document.getElementById('indicateur').value;
+            
+            if (indicateur.includes('Taux') && valeur > 100) {
+                e.preventDefault();
+                alert('Les taux ne peuvent pas dépasser 100%');
+                return;
+            }
+            
+            if (valeur < 0) {
+                e.preventDefault();
+                alert('La valeur du seuil ne peut pas être négative');
+                return;
+            }
+            
+            if (indicateur.includes('PPM') && valeur > 10000) {
+                if (!confirm('Cette valeur de PPM semble très élevée. Êtes-vous sûr de vouloir continuer ?')) {
+                    e.preventDefault();
+                    return;
+                }
+            }
+        });
+
+        // Validation du formulaire CNQ
+        document.querySelector('form[action="/admin/update_cnq"]').addEventListener('submit', function(e) {
+            const cnqValue = parseFloat(document.getElementById('cnq_value').value);
+            const month = document.getElementById('cnq_month').value;
+            const year = document.getElementById('cnq_year').value;
+            
+            if (!cnqValue || !month || !year) {
+                e.preventDefault();
+                alert('Tous les champs sont obligatoires pour la saisie CNQ');
+                return;
+            }
+            
+            if (cnqValue < 0 || cnqValue > 100) {
+                e.preventDefault();
+                alert('La valeur CNQ doit être entre 0 et 100%');
+                return;
+            }
+            
+            if (cnqValue > 50) {
+                if (!confirm('Cette valeur CNQ semble très élevée (' + cnqValue + '%). Êtes-vous sûr de vouloir continuer ?')) {
+                    e.preventDefault();
+                    return;
+                }
+            }
+        });
+        
+        // Mise à jour de l'aide contextuelle selon l'indicateur sélectionné
+        document.getElementById('indicateur').addEventListener('change', function() {
+            const valeurSeuil = document.getElementById('valeur_seuil');
+            const formText = valeurSeuil.nextElementSibling;
+            
+            switch(this.value) {
+                case 'PPM Officiel':
+                case 'PPM Non Officiel':
+                    formText.textContent = 'Valeur en parties par million (ppm). Valeurs typiques : 50-500 ppm';
+                    valeurSeuil.placeholder = 'Ex: 100';
+                    break;
+                case 'Taux de Rebut':
+                case 'Taux de Retouche':
+                    formText.textContent = 'Valeur en pourcentage (%). Valeurs typiques : 1-10%';
+                    valeurSeuil.placeholder = 'Ex: 2.5';
+                    break;
+                case 'Coût de Rebut':
+                    formText.textContent = 'Coût des rebuts en dinars tunisiens (TND). Valeurs typiques : 100-2000 TND';
+                    valeurSeuil.placeholder = 'Ex: 500';
+                    break;
+                case 'Nombre de reclamation':
+                    formText.textContent = 'Nombre de réclamations par période. Valeurs typiques : 1-20 réclamations';
+                    valeurSeuil.placeholder = 'Ex: 5';
+                    break;
+                default:
+                    formText.textContent = 'L\'unité dépend de l\'indicateur sélectionné (ppm, %, TND, nombre)';
+                    valeurSeuil.placeholder = '';
+            }
+        });
+
+        // Auto-sélection de l'année et du mois actuels pour CNQ
+        document.addEventListener('DOMContentLoaded', function() {
+            const currentDate = new Date();
+            const currentYear = currentDate.getFullYear();
+            const currentMonth = currentDate.getMonth() + 1;
+            
+            const yearSelect = document.getElementById('cnq_year');
+            if (yearSelect.querySelector(`option[value="${currentYear}"]`)) {
+                yearSelect.value = currentYear;
+            }
+            
+            document.getElementById('cnq_month').value = currentMonth;
+        });
+    </script>
+</body>
+</html>

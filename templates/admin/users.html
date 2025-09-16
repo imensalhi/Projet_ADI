@@ -1,0 +1,1248 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestion Utilisateurs - ADI Quality</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+        <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>✈️</text></svg>">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-navy: #0f172a;
+            --navy-dark: #020617;
+            --navy-light: #1e293b;
+            --primary-red: #dc2626;
+            --red-dark: #b91c1c;
+            --red-light: #ef4444;
+            --primary-blue: #3b82f6;
+            --accent-purple: #8b5cf6;
+            --accent-emerald: #10b981;
+            --accent-amber: #f59e0b;
+            --white: #ffffff;
+            --gray-light: #f8fafc;
+            --gray-50: #f9fafb;
+            --gray-100: #f1f5f9;
+            --gray-200: #e2e8f0;
+            --gray-300: #cbd5e1;
+            --gray-400: #94a3b8;
+            --gray-500: #64748b;
+            --gray-600: #475569;
+            --gray-700: #334155;
+            --gray-800: #1e293b;
+            --gray-900: #0f172a;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --info: #06b6d4;
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            --shadow-2xl: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            --border-radius: 16px;
+            --border-radius-lg: 20px;
+            --gradient-primary: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%);
+            --gradient-accent: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+            --gradient-glass: rgba(255, 255, 255, 0.1);
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 50%, #cbd5e1 100%);
+            min-height: 100vh;
+            color: var(--gray-800);
+            line-height: 1.6;
+            position: relative;
+        }
+
+        .navbar {
+            background: var(--gradient-primary);
+            padding: 1.5rem 2rem;
+            box-shadow: var(--shadow-xl);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .navbar-brand {
+            color: var(--white);
+            font-weight: 700;
+            font-size: 1.75rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .navbar-brand i {
+            font-size: 2rem;
+            background: var(--gradient-accent);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .container-fluid {
+            max-width: 1400px;
+            margin: 2rem auto;
+            padding: 0 1.5rem;
+        }
+
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2.5rem;
+            padding: 2rem;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: var(--border-radius-lg);
+            box-shadow: var(--shadow-lg);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .page-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: var(--gradient-accent);
+            opacity: 0.03;
+            z-index: 0;
+        }
+
+        .page-header > * {
+            position: relative;
+            z-index: 1;
+        }
+
+        .page-header h1 {
+            font-size: 2.25rem;
+            font-weight: 800;
+            background: var(--gradient-primary);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin: 0;
+            letter-spacing: -0.025em;
+        }
+
+        .page-header p {
+            color: var(--gray-600);
+            margin: 0.5rem 0 0;
+            font-size: 1.1rem;
+            font-weight: 500;
+        }
+
+        .stats-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            flex: 1;
+            min-width: 200px;
+            background: var(--white);
+            border-radius: 12px;
+            padding: 1.25rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card.navy {
+            border-color: #1e40af;
+            background: linear-gradient(135deg, #ffffff 0%, #eff6ff 100%);
+        }
+        .stat-card.red {
+            border-color: #dc2626;
+            background: linear-gradient(135deg, #ffffff 0%, #fef2f2 100%);
+        }
+        .stat-card.blue {
+            border-color: #2563eb;
+            background: linear-gradient(135deg, #ffffff 0%, #eff6ff 100%);
+        }
+        .stat-card.success {
+            border-color: #059669;
+            background: linear-gradient(135deg, #ffffff 0%, #ecfdf5 100%);
+        }
+        .stat-card.info {
+            border-color: #0891b2;
+            background: linear-gradient(135deg, #ffffff 0%, #f0f9ff 100%);
+        }
+
+        .stat-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.15);
+        }
+
+        .stat-content {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .stat-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--white);
+            font-size: 1.2rem;
+            flex-shrink: 0;
+        }
+
+        .stat-card.navy .stat-icon { background: #1e40af; }
+        .stat-card.red .stat-icon { background: #dc2626; }
+        .stat-card.blue .stat-icon { background: #2563eb; }
+        .stat-card.success .stat-icon { background: #059669; }
+        .stat-card.info .stat-icon { background: #0891b2; }
+
+        .stat-info {
+            flex: 1;
+        }
+
+        .stat-number {
+            font-size: 2.25rem;
+            font-weight: 700;
+            margin: 0;
+            line-height: 1;
+        }
+
+        .stat-card.navy .stat-number { color: #1e40af; }
+        .stat-card.red .stat-number { color: #dc2626; }
+        .stat-card.blue .stat-number { color: #2563eb; }
+        .stat-card.success .stat-number { color: #059669; }
+        .stat-card.info .stat-number { color: #0891b2; }
+
+        .stat-label {
+            color: #6b7280;
+            font-weight: 600;
+            font-size: 0.85rem;
+            margin-top: 0.25rem;
+            line-height: 1.2;
+        }
+
+        .search-section {
+            margin-bottom: 2rem;
+            position: relative;
+        }
+
+        .search-container {
+            max-width: 500px;
+            position: relative;
+        }
+
+        .search-input {
+            padding: 1rem 1.25rem 1rem 3rem;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-radius: 12px;
+            font-size: 1rem;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            box-shadow: var(--shadow-md);
+            transition: all 0.3s ease;
+        }
+
+        .search-input:focus {
+            border-color: var(--primary-blue);
+            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1), var(--shadow-lg);
+            outline: none;
+            transform: translateY(-2px);
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--gray-500);
+            font-size: 1.1rem;
+        }
+
+        .main-card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: var(--border-radius-lg);
+            box-shadow: var(--shadow-xl);
+            overflow: hidden;
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .card-header-modern {
+            background: var(--gradient-primary);
+            color: var(--white);
+            padding: 2rem;
+            font-size: 1.5rem;
+            font-weight: 700;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card-header-modern::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: -50%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+            transform: skewX(-25deg);
+            animation: shimmer 3s ease-in-out infinite;
+        }
+
+        @keyframes shimmer {
+            0% { transform: translateX(-100%) skewX(-25deg); }
+            100% { transform: translateX(200%) skewX(-25deg); }
+        }
+
+        .table {
+            margin: 0;
+        }
+
+        .table th {
+            background: var(--gray-50);
+            color: var(--primary-navy);
+            font-weight: 700;
+            padding: 1.25rem;
+            border-bottom: 2px solid var(--primary-navy);
+            font-size: 0.95rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .table td {
+            padding: 1.25rem;
+            border-bottom: 1px solid var(--gray-200);
+            vertical-align: middle;
+        }
+
+        .table tbody tr {
+            transition: all 0.2s ease;
+        }
+
+        .table tbody tr:hover {
+            background: linear-gradient(135deg, var(--gray-50) 0%, rgba(59, 130, 246, 0.05) 100%);
+            transform: translateX(4px);
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .user-avatar {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            background: var(--gradient-accent);
+            color: var(--white);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 1.1rem;
+            box-shadow: var(--shadow-md);
+        }
+
+        .user-details .user-name {
+            font-weight: 700;
+            font-size: 1.1rem;
+            color: var(--gray-800);
+        }
+
+        .user-details .user-meta {
+            font-size: 0.9rem;
+            color: var(--gray-500);
+            font-weight: 500;
+        }
+
+        .badge {
+            padding: 0.6rem 1.2rem;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .btn {
+            border-radius: 12px;
+            padding: 0.7rem 1.4rem;
+            font-weight: 600;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border: none;
+            box-shadow: var(--shadow-md);
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .btn-primary {
+            background: var(--gradient-accent);
+            color: var(--white);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, var(--primary-red) 0%, var(--red-light) 100%);
+            color: var(--white);
+        }
+
+        .btn-outline-primary {
+            border: 2px solid var(--primary-blue);
+            color: var(--primary-blue);
+            background: transparent;
+        }
+
+        .btn-outline-primary:hover {
+            background: var(--primary-blue);
+            color: var(--white);
+        }
+
+        .floating-action {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            z-index: 1000;
+        }
+
+        .floating-btn {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            background: var(--gradient-accent);
+            color: var(--white);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.75rem;
+            box-shadow: var(--shadow-xl);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            border: none;
+        }
+
+        .floating-btn:hover {
+            transform: scale(1.15) rotate(90deg);
+            box-shadow: var(--shadow-2xl);
+        }
+
+        .modal-content {
+            border-radius: var(--border-radius-lg);
+            box-shadow: var(--shadow-2xl);
+            border: none;
+            backdrop-filter: blur(20px);
+        }
+
+        .modal-header {
+            background: var(--gradient-primary);
+            color: var(--white);
+            padding: 2rem;
+            border-radius: var(--border-radius-lg) var(--border-radius-lg) 0 0;
+        }
+
+        .modal-header.bg-danger {
+            background: linear-gradient(135deg, var(--primary-red) 0%, var(--red-dark) 100%);
+        }
+
+        .modal-title {
+            font-weight: 700;
+            font-size: 1.5rem;
+        }
+
+        .modal-body {
+            padding: 2rem;
+            background: rgba(255, 255, 255, 0.95);
+        }
+
+        .modal-footer {
+            padding: 1.5rem 2rem;
+            background: var(--gray-50);
+            border-radius: 0 0 var(--border-radius-lg) var(--border-radius-lg);
+        }
+
+        .form-control, .form-select {
+            border: 2px solid var(--gray-200);
+            border-radius: 12px;
+            padding: 0.9rem;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            background: rgba(255, 255, 255, 0.8);
+        }
+
+        .form-control:focus, .form-select:focus {
+            border-color: var(--primary-blue);
+            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
+            transform: translateY(-1px);
+        }
+
+        .form-label {
+            font-weight: 700;
+            color: var(--primary-navy);
+            font-size: 1rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .alert {
+            border-radius: 12px;
+            padding: 1.25rem;
+            border: none;
+            box-shadow: var(--shadow-md);
+        }
+
+        .alert-success {
+            background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+            color: #065f46;
+            border-left: 4px solid var(--success);
+        }
+
+        .alert-danger {
+            background: linear-gradient(135deg, #fef2f2 0%, #fecaca 100%);
+            color: #991b1b;
+            border-left: 4px solid var(--primary-red);
+        }
+
+        .loading-spinner {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(255, 255, 255, 0.95);
+            padding: 2rem;
+            border-radius: var(--border-radius-lg);
+            box-shadow: var(--shadow-2xl);
+            backdrop-filter: blur(20px);
+            z-index: 9999;
+        }
+
+        .spinner {
+            width: 48px;
+            height: 48px;
+            border: 4px solid var(--gray-200);
+            border-top: 4px solid var(--primary-blue);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @media (max-width: 768px) {
+            .page-header {
+                flex-direction: column;
+                gap: 1.5rem;
+                text-align: center;
+                padding: 1.5rem;
+            }
+
+            .page-header h1 {
+                font-size: 1.75rem;
+            }
+
+            .stats-grid {
+                flex-direction: column;
+                gap: 0.75rem;
+            }
+
+            .stat-card {
+                min-width: unset;
+            }
+
+            .stat-number {
+                font-size: 1.75rem;
+            }
+
+            .floating-btn {
+                width: 60px;
+                height: 60px;
+                font-size: 1.5rem;
+            }
+
+            .table-responsive {
+                font-size: 0.9rem;
+            }
+
+            .user-info {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 0.75rem;
+            }
+
+            .action-buttons {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+
+            .navbar {
+                padding: 1rem;
+            }
+
+            .navbar-brand {
+                font-size: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Loading Spinner -->
+    <div class="loading-spinner" id="loadingSpinner">
+        <div class="spinner"></div>
+    </div>
+
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="/dashboard">
+                <i class="fas fa-users-cog"></i>
+                Gestion Utilisateurs
+            </a>
+        </div>
+    </nav>
+
+    <div class="container-fluid">
+        <!-- Page Header -->
+        <div class="page-header">
+            <div>
+                <h1>Administration des Utilisateurs</h1>
+                <p>Gestion et contrôle des accès système</p>
+            </div>
+            <a href="/dashboard" class="btn btn-outline-primary">
+                <i class="fas fa-arrow-left"></i> Retour Dashboard
+            </a>
+        </div>
+
+        <!-- Flash Messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="mb-3">
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ 'danger' if category == 'error' else category }} alert-dismissible fade show" role="alert">
+                            <i class="fas fa-{{ 'check-circle' if category == 'success' else 'exclamation-triangle' }} me-2"></i>
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+
+        <!-- Search Section -->
+        <div class="search-section">
+            <div class="search-container">
+                <input type="text" class="search-input" id="searchUsers" placeholder="Rechercher par nom, email ou rôle..." onkeyup="filterUsers()">
+                <i class="fas fa-search search-icon"></i>
+            </div>
+        </div>
+
+        <!-- Statistics -->
+        <div class="stats-grid">
+            <div class="stat-card navy">
+                <div class="stat-content">
+                    <div class="stat-icon"><i class="fas fa-users"></i></div>
+                    <div class="stat-info">
+                        <h2 class="stat-number">{{ users|length }}</h2>
+                        <p class="stat-label">Total Utilisateurs</p>
+                    </div>
+                </div>
+            </div>
+            <div class="stat-card red">
+                <div class="stat-content">
+                    <div class="stat-icon"><i class="fas fa-crown"></i></div>
+                    <div class="stat-info">
+                        <h2 class="stat-number">{{ users|selectattr('role', 'equalto', 'Administration')|list|length }}</h2>
+                        <p class="stat-label">Administrateurs</p>
+                    </div>
+                </div>
+            </div>
+            <div class="stat-card success">
+                <div class="stat-content">
+                    <div class="stat-icon"><i class="fas fa-shield-alt"></i></div>
+                    <div class="stat-info">
+                        <h2 class="stat-number">{{ users|selectattr('is_protected', 'equalto', 1)|list|length }}</h2>
+                        <p class="stat-label">Comptes Protégés</p>
+                    </div>
+                </div>
+            </div>
+            <div class="stat-card blue">
+                <div class="stat-content">
+                    <div class="stat-icon"><i class="fas fa-clipboard-check"></i></div>
+                    <div class="stat-info">
+                        <h2 class="stat-number">{{ users|selectattr('role', 'equalto', 'Chargé Qualité/Animateur Qualité')|list|length }}</h2>
+                        <p class="stat-label">Responsables Qualité</p>
+                    </div>
+                </div>
+            </div>
+            <div class="stat-card info">
+                <div class="stat-content">
+                    <div class="stat-icon"><i class="fas fa-user-friends"></i></div>
+                    <div class="stat-info">
+                        <h2 class="stat-number">{{ users|selectattr('role', 'equalto', 'Autre')|list|length }}</h2>
+                        <p class="stat-label">Autres Rôles</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Users Table -->
+        <div class="main-card">
+            <div class="card-header-modern">
+                <i class="fas fa-table me-3"></i>Liste des Utilisateurs
+            </div>
+            <div class="table-container">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0" id="usersTable">
+                        <thead>
+                            <tr>
+                                <th>Utilisateur</th>
+                                <th>Contact</th>
+                                <th>Compte</th>
+                                <th>Rôle</th>
+                                <th>Traçabilité</th>
+                                <th>Création</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for user in users %}
+                            <tr class="{{ 'protected-user' if user.is_protected == 1 else '' }}" data-user-search="{{ (user.prenom + ' ' + user.nom + ' ' + user.email + ' ' + user.nom_compte)|lower }}">
+                                <td>
+                                    <div class="user-info">
+                                        <div class="user-avatar">
+                                            {{ user.prenom[0] }}{{ user.nom[0] }}
+                                        </div>
+                                        <div class="user-details">
+                                            <div class="user-name">
+                                                {{ user.prenom }} {{ user.nom }}
+                                                {% if user.is_protected == 1 %}
+                                                    <span class="badge bg-warning">
+                                                        <i class="fas fa-shield-alt"></i> Protégé
+                                                    </span>
+                                                {% endif %}
+                                            </div>
+                                            <div class="user-meta">ID: {{ user.id }}</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <i class="fas fa-envelope text-muted me-2"></i>
+                                        <span>{{ user.email }}</span>
+                                    </div>
+                                </td>
+                                <td>
+                                    <code class="bg-light px-3 py-2 rounded">{{ user.nom_compte }}</code>
+                                </td>
+                                <td>
+                                    {% if user.role == 'Administration' %}
+                                        <span class="badge bg-danger">
+                                            <i class="fas fa-crown"></i> {{ user.role }}
+                                        </span>
+                                    {% elif user.role == 'Chargé Qualité/Animateur Qualité' %}
+                                        <span class="badge bg-warning">
+                                            <i class="fas fa-clipboard-check"></i> Qualité
+                                        </span>
+                                    {% elif user.role == 'Autre' %}
+                                        <span class="badge bg-info">
+                                            <i class="fas fa-user-friends"></i> {{ user.role }}
+                                        </span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">
+                                            <i class="fas fa-user"></i> {{ user.role }}
+                                        </span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <small class="text-muted">
+                                        <div class="mb-1">
+                                            <i class="fas fa-user-plus me-1"></i>
+                                            {{ user.cree_par or 'Système' }}
+                                        </div>
+                                        {% if user.modifie_par %}
+                                            <div>
+                                                <i class="fas fa-user-edit me-1"></i>
+                                                {{ user.modifie_par }}
+                                            </div>
+                                        {% endif %}
+                                    </small>
+                                </td>
+                                <td>
+                                    <small class="text-muted">
+                                        <i class="fas fa-calendar me-1"></i>
+                                        {{ user.created_at.split('T')[0] if user.created_at else 'N/A' }}
+                                    </small>
+                                </td>
+                                <td>
+                                    <div class="action-buttons d-flex gap-2">
+                                        <button type="button" class="btn btn-sm btn-outline-primary" onclick="editUser('{{ user.id }}')" title="Modifier l'utilisateur" data-bs-toggle="tooltip" {% if user.is_protected == 1 %}disabled{% endif %}>
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                        {% if user.id != session.user_id and user.is_protected != 1 %}
+                                        <button type="button" class="btn btn-sm btn-outline-danger" onclick="deleteUser('{{ user.id }} {{ user.prenom }} {{ user.nom }}')" title="Supprimer l'utilisateur" data-bs-toggle="tooltip">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                        {% else %}
+                                        <button type="button" class="btn btn-sm btn-outline-secondary" title="{% if user.is_protected == 1 %}Compte protégé{% else %}Votre propre compte{% endif %}" data-bs-toggle="tooltip" disabled>
+                                            <i class="fas fa-{% if user.is_protected == 1 %}shield-alt{% else %}user-lock{% endif %}"></i>
+                                        </button>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Floating Action Button -->
+    <div class="floating-action">
+        <button type="button" class="floating-btn" data-bs-toggle="modal" data-bs-target="#addUserModal" title="Ajouter un utilisateur" data-bs-toggle="tooltip">
+            <i class="fas fa-plus"></i>
+        </button>
+    </div>
+
+    <!-- Add User Modal -->
+    <div class="modal fade" id="addUserModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="fas fa-user-plus"></i> Ajouter un Utilisateur
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <form action="/admin/create_user" method="POST" id="addUserForm">
+                    <div class="modal-body">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="nom" class="form-label">Nom *</label>
+                                <input type="text" class="form-control" id="nom" name="nom" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="prenom" class="form-label">Prénom *</label>
+                                <input type="text" class="form-control" id="prenom" name="prenom" required>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="email" class="form-label">Email *</label>
+                            <input type="email" class="form-control" id="email" name="email" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="nom_compte" class="form-label">Nom de Compte *</label>
+                            <input type="text" class="form-control" id="nom_compte" name="nom_compte" required>
+                            <small class="form-text text-muted">Généré automatiquement à partir du prénom et nom</small>
+                        </div>
+                        <div class="mb-3">
+                            <label for="mot_de_passe" class="form-label">Mot de Passe *</label>
+                            <div class="position-relative">
+                                <input type="password" class="form-control" id="mot_de_passe" name="mot_de_passe" required>
+                                <button type="button" class="btn btn-outline-secondary position-absolute end-0 top-0 h-100" id="togglePassword">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                            </div>
+                            <div id="password-feedback"></div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="role" class="form-label">Rôle *</label>
+                            <select class="form-select" id="role" name="role" required>
+                                <option value="">Sélectionner un rôle</option>
+                                <option value="Administration">Administration</option>
+                                <option value="Chargé Qualité/Animateur Qualité">Chargé Qualité/Animateur Qualité</option>
+                                <option value="Autre">Autre</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                            <i class="fas fa-times me-2"></i> Annuler
+                        </button>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save me-2"></i> Créer
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit User Modal -->
+    <div class="modal fade" id="editUserModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="fas fa-user-edit"></i> Modifier l'Utilisateur
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <form id="editUserForm" method="POST">
+                    <div class="modal-body">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="edit_nom" class="form-label">Nom *</label>
+                                <input type="text" class="form-control" id="edit_nom" name="nom" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="edit_prenom" class="form-label">Prénom *</label>
+                                <input type="text" class="form-control" id="edit_prenom" name="prenom" required>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="edit_email" class="form-label">Email *</label>
+                            <input type="email" class="form-control" id="edit_email" name="email" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="edit_role" class="form-label">Rôle *</label>
+                            <select class="form-select" id="edit_role" name="role" required>
+                                <option value="Administration">Administration</option>
+                                <option value="Chargé Qualité/Animateur Qualité">Chargé Qualité/Animateur Qualité</option>
+                                <option value="Autre">Autre</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="edit_mot_de_passe" class="form-label">Nouveau Mot de Passe</label>
+                            <div class="position-relative">
+                                <input type="password" class="form-control" id="edit_mot_de_passe" name="mot_de_passe">
+                                <button type="button" class="btn btn-outline-secondary position-absolute end-0 top-0 h-100" id="toggleEditPassword">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                            </div>
+                            <small class="form-text text-muted">Laissez vide pour conserver le mot de passe actuel</small>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                            <i class="fas fa-times me-2"></i> Annuler
+                        </button>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save me-2"></i> Sauvegarder
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div class="modal fade" id="deleteConfirmModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-danger">
+                    <h5 class="modal-title">
+                        <i class="fas fa-exclamation-triangle"></i> Confirmation de Suppression
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="text-center mb-3">
+                        <i class="fas fa-user-times text-danger" style="font-size: 4rem; opacity: 0.8;"></i>
+                    </div>
+                    <p class="text-center mb-2 fs-5">Voulez-vous supprimer :</p>
+                    <div class="alert alert-warning text-center">
+                        <strong id="deleteUserName" class="fs-5"></strong>
+                    </div>
+                    <p class="text-danger text-center fs-6">
+                        <i class="fas fa-exclamation-circle me-1"></i>
+                        Cette action est irréversible !
+                    </p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="fas fa-arrow-left me-2"></i> Annuler
+                    </button>
+                    <form id="deleteUserForm" method="POST" style="display: inline;">
+                        <button type="submit" class="btn btn-danger">
+                            <i class="fas fa-trash me-2"></i> Supprimer
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Variables globales
+        let usersData = {};
+
+        function showLoading() {
+            document.getElementById('loadingSpinner').style.display = 'block';
+        }
+
+        function hideLoading() {
+            document.getElementById('loadingSpinner').style.display = 'none';
+        }
+
+        function editUser(userId) {
+            showLoading();
+            const row = document.querySelector(`tr[data-user-search*=""]`);
+            const allRows = document.querySelectorAll('#usersTable tbody tr');
+            let userData = null;
+
+            allRows.forEach(row => {
+                const editBtn = row.querySelector(`button[onclick*="${userId}"]`);
+                if (editBtn) {
+                    const cells = row.querySelectorAll('td');
+                    const fullName = cells[0].querySelector('.user-name').textContent.trim();
+                    const nameParts = fullName.split(' ');
+                    const prenom = nameParts[0];
+                    const nom = nameParts.slice(1).join(' ');
+
+                    userData = {
+                        nom: nom,
+                        prenom: prenom,
+                        email: cells[1].textContent.trim().replace('✉', '').trim(),
+                        role: cells[3].querySelector('.badge').textContent.trim()
+                    };
+
+                    if (userData.role === 'Qualité') {
+                        userData.role = 'Chargé Qualité/Animateur Qualité';
+                    }
+                }
+            });
+
+            hideLoading();
+
+            if (userData) {
+                const isProtected = document.querySelector(`button[onclick*="editUser(${userId})"]`).disabled;
+                if (isProtected) {
+                    showAlert('Erreur: Ce compte est protégé et ne peut pas être modifié', 'danger');
+                    return;
+                }
+
+                document.getElementById('edit_nom').value = userData.nom;
+                document.getElementById('edit_prenom').value = userData.prenom;
+                document.getElementById('edit_email').value = userData.email;
+                document.getElementById('edit_role').value = userData.role;
+                document.getElementById('edit_mot_de_passe').value = '';
+
+                document.getElementById('editUserForm').action = `/admin/edit_user/${userId}`;
+                new bootstrap.Modal(document.getElementById('editUserModal')).show();
+            } else {
+                showAlert('Erreur: Impossible de récupérer les données de l\'utilisateur', 'danger');
+            }
+        }
+
+        function deleteUser(userId, userName) {
+            const isProtected = document.querySelector(`button[onclick*="deleteUser(${userId}"]`) === null;
+            if (isProtected) {
+                showAlert('Erreur: Ce compte est protégé et ne peut pas être supprimé', 'danger');
+                return;
+            }
+
+            document.getElementById('deleteUserName').textContent = userName;
+            document.getElementById('deleteUserForm').action = `/admin/delete_user/${userId}`;
+            new bootstrap.Modal(document.getElementById('deleteConfirmModal')).show();
+        }
+
+        function showAlert(message, type = 'info') {
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert alert-${type} alert-dismissible fade show`;
+            alertDiv.innerHTML = `
+                <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-triangle'} me-2"></i>
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+            const container = document.querySelector('.container-fluid');
+            container.insertBefore(alertDiv, container.firstChild);
+            setTimeout(() => {
+                if (alertDiv.parentNode) {
+                    alertDiv.remove();
+                }
+            }, 5000);
+        }
+
+        function generateUsername() {
+            const prenom = document.getElementById('prenom').value.toLowerCase().trim();
+            const nom = document.getElementById('nom').value.toLowerCase().trim();
+            if (prenom && nom) {
+                const cleanPrenom = prenom.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z]/g, "");
+                const cleanNom = nom.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z]/g, "");
+                const username = cleanPrenom + '.' + cleanNom;
+                document.getElementById('nom_compte').value = username;
+            }
+        }
+
+        function filterUsers() {
+            const searchTerm = document.getElementById('searchUsers').value.toLowerCase();
+            const rows = document.querySelectorAll('#usersTable tbody tr');
+            let visibleCount = 0;
+            
+            rows.forEach(row => {
+                const searchData = row.getAttribute('data-user-search');
+                const isVisible = searchData.includes(searchTerm);
+                row.style.display = isVisible ? '' : 'none';
+                if (isVisible) visibleCount++;
+            });
+
+            // Animation d'apparition des lignes filtrées
+            const visibleRows = document.querySelectorAll('#usersTable tbody tr:not([style*="none"])');
+            visibleRows.forEach((row, index) => {
+                row.style.animation = `fadeInUp 0.3s ease forwards ${index * 0.05}s`;
+            });
+        }
+
+        function validatePassword(password) {
+            const errors = [];
+            if (password.length < 8) errors.push('Au moins 8 caractères');
+            if (!/(?=.*[a-z])/.test(password)) errors.push('Une lettre minuscule');
+            if (!/(?=.*[A-Z])/.test(password)) errors.push('Une lettre majuscule');
+            if (!/(?=.*\d)/.test(password)) errors.push('Un chiffre');
+            return errors;
+        }
+
+        function togglePasswordVisibility(inputId, buttonId) {
+            const input = document.getElementById(inputId);
+            const button = document.getElementById(buttonId);
+            const icon = button.querySelector('i');
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.className = 'fas fa-eye-slash';
+            } else {
+                input.type = 'password';
+                icon.className = 'fas fa-eye';
+            }
+        }
+
+        // Ajout d'animations CSS
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes fadeInUp {
+                from {
+                    opacity: 0;
+                    transform: translateY(20px);
+                }
+                to {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
+            }
+            
+            @keyframes pulse {
+                0% { transform: scale(1); }
+                50% { transform: scale(1.05); }
+                100% { transform: scale(1); }
+            }
+            
+            .stat-card:hover .stat-number {
+                animation: pulse 0.6s ease-in-out;
+            }
+            
+            .floating-btn:active {
+                transform: scale(0.95) rotate(90deg);
+            }
+        `;
+        document.head.appendChild(style);
+
+        document.addEventListener('DOMContentLoaded', function() {
+            // Animation d'entrée pour les cartes statistiques
+            const statCards = document.querySelectorAll('.stat-card');
+            statCards.forEach((card, index) => {
+                card.style.opacity = '0';
+                card.style.transform = 'translateY(50px)';
+                setTimeout(() => {
+                    card.style.transition = 'all 0.6s cubic-bezier(0.4, 0, 0.2, 1)';
+                    card.style.opacity = '1';
+                    card.style.transform = 'translateY(0)';
+                }, index * 100);
+            });
+
+            // Animation d'entrée pour le tableau
+            setTimeout(() => {
+                const mainCard = document.querySelector('.main-card');
+                mainCard.style.opacity = '0';
+                mainCard.style.transform = 'translateY(30px)';
+                mainCard.style.transition = 'all 0.8s cubic-bezier(0.4, 0, 0.2, 1)';
+                setTimeout(() => {
+                    mainCard.style.opacity = '1';
+                    mainCard.style.transform = 'translateY(0)';
+                }, 100);
+            }, 500);
+
+            document.getElementById('prenom').addEventListener('input', generateUsername);
+            document.getElementById('nom').addEventListener('input', generateUsername);
+            document.getElementById('togglePassword').addEventListener('click', function() {
+                togglePasswordVisibility('mot_de_passe', 'togglePassword');
+            });
+            document.getElementById('toggleEditPassword').addEventListener('click', function() {
+                togglePasswordVisibility('edit_mot_de_passe', 'toggleEditPassword');
+            });
+            
+            document.getElementById('mot_de_passe').addEventListener('input', function() {
+                const password = this.value;
+                const feedback = document.getElementById('password-feedback');
+                if (password) {
+                    const errors = validatePassword(password);
+                    if (errors.length > 0) {
+                        feedback.innerHTML = `
+                            <div class="text-danger mt-2">
+                                <i class="fas fa-exclamation-circle me-1"></i>
+                                Requis: ${errors.join(', ')}
+                            </div>
+                        `;
+                        this.classList.add('is-invalid');
+                        this.classList.remove('is-valid');
+                    } else {
+                        feedback.innerHTML = `
+                            <div class="text-success mt-2">
+                                <i class="fas fa-check-circle me-1"></i>
+                                Mot de passe valide
+                            </div>
+                        `;
+                        this.classList.remove('is-invalid');
+                        this.classList.add('is-valid');
+                    }
+                } else {
+                    feedback.innerHTML = '';
+                    this.classList.remove('is-invalid', 'is-valid');
+                }
+            });
+            
+            const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+            tooltipTriggerList.map(function (tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl);
+            });
+            
+            document.getElementById('addUserModal').addEventListener('hidden.bs.modal', function() {
+                document.getElementById('addUserForm').reset();
+                document.getElementById('password-feedback').innerHTML = '';
+                document.querySelectorAll('.is-valid, .is-invalid').forEach(el => {
+                    el.classList.remove('is-valid', 'is-invalid');
+                });
+            });
+        });
+
+        document.getElementById('addUserForm').addEventListener('submit', function(e) {
+            const password = document.getElementById('mot_de_passe').value;
+            const errors = validatePassword(password);
+            if (errors.length > 0) {
+                e.preventDefault();
+                showAlert('Erreur de validation: ' + errors.join(', '), 'danger');
+            }
+        });
+    </script>
+</body>
+</html>
