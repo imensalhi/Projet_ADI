@@ -2,14 +2,12 @@
 
 # Qboard ADI - Plateforme de Management de la Performance Qualité
 
-![Qboard ADI Logo](https://via.placeholder.com/400x100/1E3A8A/FFFFFF?text=Qboard+ADI✈️)
-*Plateforme intégrée de monitoring et contrôle qualité pour l'industrie aérospatiale*
+*Plateforme web complète intégrée de monitoring et contrôle qualité pour l'industrie aérospatiale développée avec Flask.*
 [![Python](https://img.shields.io/badge/Python-3.8%2B-blue)](https://www.python.org/)
 [![Flask](https://img.shields.io/badge/Flask-3.1.2-green)](https://flask.palletsprojects.com/)
 [![Pandas](https://img.shields.io/badge/Pandas-2.3.2-orange)](https://pandas.pydata.org/)
 [![License](https://img.shields.io/badge/License-MIT-yellow)](LICENSE)
 
-Une plateforme web complète pour l'analyse et la visualisation des données industrielles, développée avec Flask.
 
 ## Présentation
 Le Tableau de Bord Qualité ADI est une plateforme web conçue pour gérer et visualiser les métriques de qualité des ateliers de fabrication chez ADI. Elle offre des insights en temps réel sur les indicateurs clés de performance (KPI) tels que le PPM (Parts Per Million), les taux de rebut, les taux de retouche, les coûts de rebut et les réclamations clients. La plateforme prend en charge deux rôles principaux : Chargé Qualité/Animateur Qualité (saisie et consultation des données) , Admin et Utilisateurs en Visualisation (analyse des données via des graphiques et tableaux interactifs). 
