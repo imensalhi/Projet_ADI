@@ -1,6 +1,9 @@
 # Projet ADI✈️ 
-## Qboard ADI : Plateforme d'Analyse de Données Industrielles
 
+# Qboard ADI - Plateforme de Management de la Performance Qualité
+
+![Qboard ADI Logo](https://via.placeholder.com/400x100/1E3A8A/FFFFFF?text=Qboard+ADI✈️)
+*Plateforme intégrée de monitoring et contrôle qualité pour l'industrie aérospatiale*
 [![Python](https://img.shields.io/badge/Python-3.8%2B-blue)](https://www.python.org/)
 [![Flask](https://img.shields.io/badge/Flask-3.1.2-green)](https://flask.palletsprojects.com/)
 [![Pandas](https://img.shields.io/badge/Pandas-2.3.2-orange)](https://pandas.pydata.org/)
