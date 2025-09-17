@@ -10,7 +10,7 @@
 [![Docker](https://img.shields.io/badge/Docker-Ready-blue?logo=docker&logoColor=white)](https://www.docker.com/)
 [![License](https://img.shields.io/badge/License-MIT-yellow?logo=opensource&logoColor=white)](LICENSE)
 
-[🚀 Démo Live](http://ip172-18-0-36-d358r2469qi000fadg6g-5000.direct.labs.play-with-docker.com/) | [📖 Documentation](#-utilisation) | [🐛 Issues](https://github.com/imensalhi/Projet_ADI/issues)
+ | [📖 Documentation](#-utilisation) | [🐛 Issues](https://github.com/imensalhi/Projet_ADI/issues)
 
 </div>
 
@@ -26,8 +26,6 @@
 - [Utilisation](#-utilisation)
 - [API Reference](#-api-reference)
 - [Déploiement](#-déploiement)
-- [Tests](#-tests)
-- [Contribution](#-contribution)
 
 ---
 
@@ -77,6 +75,31 @@
 - Synchronisation instantanée des modifications
 - Notifications en temps réel
 - States de chargement et gestion d'erreurs
+
+### **Saisie des Données**
+Permet aux utilisateurs autorisés d'enregistrer les données qualité mensuelles pour un atelier spécifique.
+
+### **Consultation des Données** 
+Offre des vues détaillées des métriques qualité historiques et actuelles.
+
+### **Analyse de Conformité** 
+Affiche l'état de conformité mensuel avec seuils et taux de conformité.
+
+### **Métriques YTD (Year to Date)** 
+Résume les KPI cumulés pour l'année ou l'atelier sélectionné.
+
+
+### **Gestion des Utilisateurs** 
+Prend en charge l'accès basé sur les rôles avec profils utilisateur et gestion de sessions.
+
+### **Animations et Visuels** 
+Utilise AOS pour des animations fluides et un style basé sur des dégradés pour un look moderne.
+
+### **Gestion des Erreurs** 
+Gestion robuste des erreurs API avec des états de chargement et d'erreur conviviaux.
+
+### **📋 Gestion des seuils** 
+Configuration dynamique des seuils d'alerte par atelier et indicateur
 
 ---
 
@@ -134,7 +157,7 @@ Jinja2 3.1.6         # Templates HTML dynamiques
 
 ### 🗄️ **Base de Données & API**
 ```json
-SQLite/PostgreSQL    # Base de données relationnelle
+SQLite   # Base de données relationnelle
 RESTful API          # Architecture API standard
 JSON                 # Format d'échange de données
 
@@ -156,13 +179,13 @@ JSON                 # Format d'échange de données
 ### 🚀 **Installation Locale**
 
 1. **📁 Cloner le repository**
-   ```bash
+   
    git clone https://github.com/imensalhi/Projet_ADI.git
    cd Projet_ADI
-   ```
+   
 
 2. **🐍 Créer un environnement virtuel**
-   ```bash
+   
    # Linux/Mac
    python -m venv venv
    source venv/bin/activate
@@ -170,33 +193,33 @@ JSON                 # Format d'échange de données
    # Windows
    python -m venv venv
    venv\Scripts\activate
-   ```
+
 
 3. **📦 Installer les dépendances**
-   ```bash
+
    pip install --upgrade pip
    pip install -r requirements.txt
-   ```
+   
 
 4. **⚙️ Configuration initiale**
-   ```bash
+
    # Variables d'environnement
    cp .env.example .env
    # Éditer .env avec vos paramètres
-   ```
+
 
 5. **🏃‍♂️ Lancer l'application**
-   ```bash
+   
    # Mode développement
    flask run
    
    # Mode production
    gunicorn --bind 0.0.0.0:5000 --workers 4 app:app
-   ```
+   
 
 ### 🐳 **Installation Docker (Recommandée)**
 
-```bash
+``
 # Télécharger l'image Docker
 docker pull imensalhi275/qboard-adi-app:latest
 
@@ -205,7 +228,6 @@ docker run -d -p 5000:5000 --name qboard-app imensalhi275/qboard-adi-app:latest
 
 # Vérifier le statut
 docker logs qboard-app
-```
 
 ---
 
@@ -214,14 +236,13 @@ docker logs qboard-app
 ### 🌐 **Accès à l'application**
 
 1. **🔗 Ouvrir l'application**
-   ```
+   
    Local: http://localhost:5000
    Docker: http://your-server-ip:5000
-   ```
+   
 
 2. **🔐 Connexion**
    - Utilisez vos identifiants ADI
-   - Sélectionnez votre profil (Admin/Qualité/Autre)
 
 ### 📊 **Fonctionnalités par Rôle**
 
@@ -239,7 +260,7 @@ docker logs qboard-app
 📝 Saisie Données → Formulaire mensuel atelier
 📊 Mes Graphiques → Indicateurs de mon périmètre
 📋 Consultation → Historique de mes données
-📈 Mon YTD → Métriques cumulées personnelles
+📈  YTD → Métriques cumulées 
 ```
 
 #### 👀 **Interface Consultation**
@@ -254,64 +275,21 @@ docker logs qboard-app
 1. **🔑 Admin** configure les seuils et utilisateurs
 2. **👨‍🔧 Chargé Qualité** saisit les données mensuelles
 3. **📊 Système** calcule automatiquement les métriques
-4. **🚨 Alertes** générées si dépassement de seuils  
-5. **👀 Tous** consultent les résultats en temps réel
+4. **👀 Tous** consultent les résultats en temps réel
 
 ---
 
-## 🔌 API Reference
-
-### 📊 **Endpoints Principaux**
-
-```http
-GET /api/charts_data
-Content-Type: application/json
-Parameters: atelier, year, month
-
-Response:
-{
-  "ppm": [...],
-  "rebut": [...],
-  "retouche": [...],
-  "couts": [...],
-  "reclamations": [...]
-}
-```
-
-```http
-GET /api/ytd_data
-Content-Type: application/json
-Parameters: atelier, year
-
-Response:
-{
-  "ytd_ppm": 150.5,
-  "ytd_rebut": 2.3,
-  "ytd_retouche": 1.8,
-  "conformite": 94.2
-}
-```
-
-```http
-GET /api/user/current
-Content-Type: application/json
-
-Response:
-{
-  "username": "user123",
-  "role": "admin",
-  "atelier": "A1",
-  "permissions": [...]
-}
-```
-
----
 
 ## 🐳 Déploiement
 
+Docker : Conteneurisation de l'application pour un déploiement simplifié.
+
+Docker Hub : Image disponible à hub.docker.com/r/imensalhi275/qboard-adi-app.
+
+GitHub Actions : Pipeline CI/CD pour construire et pousser l'image Docker.
 ### ☁️ **Production avec Docker**
 
-```bash
+
 # Build custom image
 docker build -t qboard-production .
 
@@ -322,11 +300,10 @@ docker run -d \
   -e DATABASE_URL=postgresql://... \
   --name qboard-prod \
   qboard-production
-```
+
 
 ### 🔧 **Configuration Nginx (Optionnelle)**
 
-```nginx
 server {
     listen 80;
     server_name your-domain.com;
@@ -337,15 +314,24 @@ server {
         proxy_set_header X-Real-IP $remote_addr;
     }
 }
-```
+
 
 ---
+**🐳 Déploiement sur Docker Hub**
+
+L’image est disponible sur Docker Hub :
+
+hub.docker.com/r/imensalhi275/qboard-adi-app
+
+Image : imensalhi275/qboard-adi-app:latest
+
+Commande par défaut : Utilise gunicorn pour servir l’application en production.
 
 ## 🧪 Tests
 
 ### 🔍 **Exécution des Tests**
 
-```bash
+
 # Tests unitaires
 python -m pytest tests/ -v
 
@@ -357,61 +343,10 @@ python -m pytest tests/integration/ -v
 
 # Tests API
 python -m pytest tests/api/ -v
-```
 
-### 📈 **Métriques de Qualité**
-- ✅ **Couverture de code** : > 85%
-- ✅ **Tests unitaires** : 120+ tests
-- ✅ **Tests d'intégration** : 45+ scénarios
-- ✅ **Tests API** : 30+ endpoints
-
----
-
-## 🤝 Contribution
-
-### 🛠️ **Développement**
-
-1. **🍴 Fork** le project
-2. **🌿 Créer** une branch feature (`git checkout -b feature/AmazingFeature`)
-3. **💾 Commit** vos changements (`git commit -m 'Add AmazingFeature'`)
-4. **📤 Push** sur la branch (`git push origin feature/AmazingFeature`)
-5. **🔄 Ouvrir** une Pull Request
-
-### 📋 **Guidelines**
-- Suivre les conventions PEP 8 pour Python
-- Documenter les nouvelles fonctionnalités
-- Ajouter des tests pour le nouveau code
-- Mettre à jour la documentation si nécessaire
-
----
-
-## 📄 License
-
-Distribué sous licence MIT. Voir `LICENSE` pour plus d'informations.
-
----
-
-## 👨‍💻 Auteur
-
-**Imen Salhi** - [@imensalhi275](https://github.com/imensalhi275)
-
-📧 Contact : [imen.salhi@adi.com](mailto:imen.salhi@adi.com)
-
----
-
-## 🙏 Remerciements
-
-- 🏢 **ADI** - Support et infrastructure
-- 🐍 **Flask Community** - Framework exceptionnel  
-- 📊 **Chart.js** - Visualisations puissantes
-- 🎨 **Bootstrap** - Interface responsive
-- 🐳 **Docker** - Conteneurisation simple
-
----
 
 <div align="center">
 
-**⭐ N'oubliez pas de mettre une étoile si ce projet vous aide ! ⭐**
 
 Made with ❤️ for ADI Quality Management
 
