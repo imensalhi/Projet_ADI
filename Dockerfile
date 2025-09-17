@@ -7,7 +7,10 @@ WORKDIR /app
 # Copier requirements et installer dépendances (optimisé pour cache Docker)
 COPY requirement.txt .
 RUN pip install --no-cache-dir -r requirement.txt
-
+# Vérifie les packages installés
+RUN pip freeze
+# Vérifie que gunicorn est dans le PATH
+RUN which gunicorn
 # Copier le code de l'app
 COPY . .
 

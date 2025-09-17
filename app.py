@@ -4075,9 +4075,6 @@ def graphique():
 
 
 if __name__ == '__main__':
-    # Créer le dossier d'upload s'il n'existe pas
-    os.makedirs(UPLOAD_FOLDER, exist_ok=True)
-    
     # Initialiser la base de données
     init_database()
     
@@ -4086,14 +4083,6 @@ if __name__ == '__main__':
     #print("  - Nom de compte: skander.chniti")
     #print("  - Mot de passe: @@skanderchniti1$")
     # print("  - Rôle: Administration")
-    print("\nServeur démarré sur http://localhost:5000")
-
-# Créer le dossier d'upload s'il n'existe pas
-    os.makedirs(UPLOAD_FOLDER, exist_ok=True)
-    
-    # Initialiser la base de données localement seulement
-    init_database()
-    print("Base de données initialisée avec succès!")
     print("\nServeur démarré sur http://localhost:5000")
     
     # Lancer en mode debug localement
