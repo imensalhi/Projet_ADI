@@ -5,8 +5,8 @@ FROM python:3.12-slim
 WORKDIR /app
 
 # Copier requirements et installer dépendances (optimisé pour cache Docker)
-COPY requirement.txt .
-RUN pip install --no-cache-dir -r requirement.txt
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
 # Vérifie les packages installés
 RUN pip freeze
 # Vérifie que gunicorn est dans le PATH
