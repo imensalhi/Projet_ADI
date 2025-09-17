@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gestion Utilisateurs - ADI Quality</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
-        <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>✈️</text></svg>">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>✈️</text></svg>">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
@@ -798,7 +798,7 @@
                                             <i class="fas fa-edit"></i>
                                         </button>
                                         {% if user.id != session.user_id and user.is_protected != 1 %}
-                                        <button type="button" class="btn btn-sm btn-outline-danger" onclick="deleteUser('{{ user.id }} {{ user.prenom }} {{ user.nom }}')" title="Supprimer l'utilisateur" data-bs-toggle="tooltip">
+                                        <button type="button" class="btn btn-sm btn-outline-danger" onclick="deleteUser('{{ user.id }}', '{{ user.prenom }} {{ user.nom }}')" title="Supprimer l'utilisateur" data-bs-toggle="tooltip">
                                             <i class="fas fa-trash"></i>
                                         </button>
                                         {% else %}
@@ -911,6 +911,11 @@
                             </div>
                         </div>
                         <div class="mb-3">
+                            <label for="edit_nom_compte" class="form-label">Nom de Compte *</label>
+                            <input type="text" class="form-control" id="edit_nom_compte" name="nom_compte" required>
+                            <small class="form-text text-muted">Généré automatiquement à partir du prénom et nom</small>
+                        </div>
+                        <div class="mb-3">
                             <label for="edit_email" class="form-label">Email *</label>
                             <input type="email" class="form-control" id="edit_email" name="email" required>
                         </div>
@@ -996,68 +1001,6 @@
             document.getElementById('loadingSpinner').style.display = 'none';
         }
 
-        function editUser(userId) {
-            showLoading();
-            const row = document.querySelector(`tr[data-user-search*=""]`);
-            const allRows = document.querySelectorAll('#usersTable tbody tr');
-            let userData = null;
-
-            allRows.forEach(row => {
-                const editBtn = row.querySelector(`button[onclick*="${userId}"]`);
-                if (editBtn) {
-                    const cells = row.querySelectorAll('td');
-                    const fullName = cells[0].querySelector('.user-name').textContent.trim();
-                    const nameParts = fullName.split(' ');
-                    const prenom = nameParts[0];
-                    const nom = nameParts.slice(1).join(' ');
-
-                    userData = {
-                        nom: nom,
-                        prenom: prenom,
-                        email: cells[1].textContent.trim().replace('✉', '').trim(),
-                        role: cells[3].querySelector('.badge').textContent.trim()
-                    };
-
-                    if (userData.role === 'Qualité') {
-                        userData.role = 'Chargé Qualité/Animateur Qualité';
-                    }
-                }
-            });
-
-            hideLoading();
-
-            if (userData) {
-                const isProtected = document.querySelector(`button[onclick*="editUser(${userId})"]`).disabled;
-                if (isProtected) {
-                    showAlert('Erreur: Ce compte est protégé et ne peut pas être modifié', 'danger');
-                    return;
-                }
-
-                document.getElementById('edit_nom').value = userData.nom;
-                document.getElementById('edit_prenom').value = userData.prenom;
-                document.getElementById('edit_email').value = userData.email;
-                document.getElementById('edit_role').value = userData.role;
-                document.getElementById('edit_mot_de_passe').value = '';
-
-                document.getElementById('editUserForm').action = `/admin/edit_user/${userId}`;
-                new bootstrap.Modal(document.getElementById('editUserModal')).show();
-            } else {
-                showAlert('Erreur: Impossible de récupérer les données de l\'utilisateur', 'danger');
-            }
-        }
-
-        function deleteUser(userId, userName) {
-            const isProtected = document.querySelector(`button[onclick*="deleteUser(${userId}"]`) === null;
-            if (isProtected) {
-                showAlert('Erreur: Ce compte est protégé et ne peut pas être supprimé', 'danger');
-                return;
-            }
-
-            document.getElementById('deleteUserName').textContent = userName;
-            document.getElementById('deleteUserForm').action = `/admin/delete_user/${userId}`;
-            new bootstrap.Modal(document.getElementById('deleteConfirmModal')).show();
-        }
-
         function showAlert(message, type = 'info') {
             const alertDiv = document.createElement('div');
             alertDiv.className = `alert alert-${type} alert-dismissible fade show`;
@@ -1075,22 +1018,79 @@
             }, 5000);
         }
 
-        function generateUsername() {
-            const prenom = document.getElementById('prenom').value.toLowerCase().trim();
-            const nom = document.getElementById('nom').value.toLowerCase().trim();
+        function generateUsername(modalPrefix = '') {
+            const prenom = document.getElementById(`${modalPrefix}prenom`).value.toLowerCase().trim();
+            const nom = document.getElementById(`${modalPrefix}nom`).value.toLowerCase().trim();
             if (prenom && nom) {
                 const cleanPrenom = prenom.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z]/g, "");
                 const cleanNom = nom.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z]/g, "");
                 const username = cleanPrenom + '.' + cleanNom;
-                document.getElementById('nom_compte').value = username;
+                document.getElementById(`${modalPrefix}nom_compte`).value = username;
             }
+        }
+
+        function editUser(userId) {
+            console.log('editUser called with userId:', userId);
+            showLoading();
+            let userData = null;
+
+            const rows = document.querySelectorAll('#usersTable tbody tr');
+            console.log('Found rows:', rows.length);
+            rows.forEach(row => {
+                const editBtn = row.querySelector(`button[onclick="editUser('${userId}')"]`);
+                if (editBtn) {
+                    const cells = row.querySelectorAll('td');
+                    const fullName = cells[0].querySelector('.user-name').textContent.trim();
+                    const nameParts = fullName.split(' ');
+                    const prenom = nameParts[0];
+                    const nom = nameParts.slice(1).join(' ');
+                    const nomCompte = cells[2].querySelector('code').textContent.trim();
+
+                    userData = {
+                        nom: nom,
+                        prenom: prenom,
+                        nom_compte: nomCompte,
+                        email: cells[1].textContent.trim().replace('✉', '').trim(),
+                        role: cells[3].querySelector('.badge').textContent.trim().replace('Qualité', 'Chargé Qualité/Animateur Qualité')
+                    };
+                }
+            });
+
+            hideLoading();
+
+            if (userData) {
+                const isProtected = document.querySelector(`button[onclick="editUser('${userId}')"]`).disabled;
+                if (isProtected) {
+                    showAlert('Erreur: Ce compte est protégé et ne peut pas être modifié', 'danger');
+                    return;
+                }
+
+                document.getElementById('edit_nom').value = userData.nom;
+                document.getElementById('edit_prenom').value = userData.prenom;
+                document.getElementById('edit_nom_compte').value = userData.nom_compte;
+                document.getElementById('edit_email').value = userData.email;
+                document.getElementById('edit_role').value = userData.role;
+                document.getElementById('edit_mot_de_passe').value = '';
+
+                document.getElementById('editUserForm').action = `/admin/edit_user/${userId}`;
+                new bootstrap.Modal(document.getElementById('editUserModal')).show();
+            } else {
+                showAlert('Erreur: Impossible de récupérer les données de l\'utilisateur', 'danger');
+            }
+        }
+
+        function deleteUser(userId, userName) {
+            console.log('deleteUser called with userId:', userId, 'userName:', userName);
+            document.getElementById('deleteUserName').textContent = userName;
+            document.getElementById('deleteUserForm').action = `/admin/delete_user/${userId}`;
+            new bootstrap.Modal(document.getElementById('deleteConfirmModal')).show();
         }
 
         function filterUsers() {
             const searchTerm = document.getElementById('searchUsers').value.toLowerCase();
             const rows = document.querySelectorAll('#usersTable tbody tr');
             let visibleCount = 0;
-            
+
             rows.forEach(row => {
                 const searchData = row.getAttribute('data-user-search');
                 const isVisible = searchData.includes(searchTerm);
@@ -1098,7 +1098,6 @@
                 if (isVisible) visibleCount++;
             });
 
-            // Animation d'apparition des lignes filtrées
             const visibleRows = document.querySelectorAll('#usersTable tbody tr:not([style*="none"])');
             visibleRows.forEach((row, index) => {
                 row.style.animation = `fadeInUp 0.3s ease forwards ${index * 0.05}s`;
@@ -1140,17 +1139,17 @@
                     transform: translateY(0);
                 }
             }
-            
+
             @keyframes pulse {
                 0% { transform: scale(1); }
                 50% { transform: scale(1.05); }
                 100% { transform: scale(1); }
             }
-            
+
             .stat-card:hover .stat-number {
                 animation: pulse 0.6s ease-in-out;
             }
-            
+
             .floating-btn:active {
                 transform: scale(0.95) rotate(90deg);
             }
@@ -1182,15 +1181,21 @@
                 }, 100);
             }, 500);
 
-            document.getElementById('prenom').addEventListener('input', generateUsername);
-            document.getElementById('nom').addEventListener('input', generateUsername);
+            // Generate username for add user modal
+            document.getElementById('prenom').addEventListener('input', () => generateUsername(''));
+            document.getElementById('nom').addEventListener('input', () => generateUsername(''));
+
+            // Generate username for edit user modal
+            document.getElementById('edit_prenom').addEventListener('input', () => generateUsername('edit_'));
+            document.getElementById('edit_nom').addEventListener('input', () => generateUsername('edit_'));
+
             document.getElementById('togglePassword').addEventListener('click', function() {
                 togglePasswordVisibility('mot_de_passe', 'togglePassword');
             });
             document.getElementById('toggleEditPassword').addEventListener('click', function() {
                 togglePasswordVisibility('edit_mot_de_passe', 'toggleEditPassword');
             });
-            
+
             document.getElementById('mot_de_passe').addEventListener('input', function() {
                 const password = this.value;
                 const feedback = document.getElementById('password-feedback');
@@ -1220,15 +1225,22 @@
                     this.classList.remove('is-invalid', 'is-valid');
                 }
             });
-            
+
             const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
             tooltipTriggerList.map(function (tooltipTriggerEl) {
                 return new bootstrap.Tooltip(tooltipTriggerEl);
             });
-            
+
             document.getElementById('addUserModal').addEventListener('hidden.bs.modal', function() {
                 document.getElementById('addUserForm').reset();
                 document.getElementById('password-feedback').innerHTML = '';
+                document.querySelectorAll('.is-valid, .is-invalid').forEach(el => {
+                    el.classList.remove('is-valid', 'is-invalid');
+                });
+            });
+
+            document.getElementById('editUserModal').addEventListener('hidden.bs.modal', function() {
+                document.getElementById('editUserForm').reset();
                 document.querySelectorAll('.is-valid, .is-invalid').forEach(el => {
                     el.classList.remove('is-valid', 'is-invalid');
                 });
