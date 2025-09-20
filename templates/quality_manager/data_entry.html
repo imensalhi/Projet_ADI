@@ -17,6 +17,7 @@
             --dark-gray: #334155;
             --success-green: #10B981;
             --excel-green: #0F7B0F;
+            --button-blue: #2563EB; /* New blue for return button */
         }
 
         body {
@@ -131,6 +132,7 @@
             transition: all 0.3s ease;
             position: relative;
             overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
         }
 
         .btn-submit::before {
@@ -140,7 +142,7 @@
             left: -100%;
             width: 100%;
             height: 100%;
-            background: linear-gradient(135deg, rgba(255,255,255,0.2), transparent);
+            background: linear-gradient(135deg, rgba(255,255,255,0.3), transparent);
             transition: left 0.5s ease;
         }
 
@@ -148,6 +150,7 @@
             transform: translateY(-3px);
             box-shadow: 0 12px 48px rgba(30, 58, 138, 0.4);
             color: white;
+            background: linear-gradient(135deg, #1E40AF, #B91C1C);
         }
 
         .btn-submit:hover::before {
@@ -155,19 +158,38 @@
         }
 
         .btn-reset {
-            background: #6B7280;
+            background: linear-gradient(135deg, #6B7280, #4B5563);
             color: white;
             border: none;
             border-radius: 15px;
             padding: 1rem 2rem;
             font-weight: 600;
             transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn-reset::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(255,255,255,0.3), transparent);
+            transition: left 0.5s ease;
         }
 
         .btn-reset:hover {
-            background: #4B5563;
-            transform: translateY(-2px);
+            background: linear-gradient(135deg, #4B5563, #374151);
+            transform: translateY(-3px);
             color: white;
+            box-shadow: 0 8px 32px rgba(75, 85, 99, 0.4);
+        }
+
+        .btn-reset:hover::before {
+            left: 100%;
         }
 
         .btn-excel {
@@ -180,6 +202,7 @@
             transition: all 0.3s ease;
             position: relative;
             overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
         }
 
         .btn-excel::before {
@@ -189,13 +212,13 @@
             left: -100%;
             width: 100%;
             height: 100%;
-            background: linear-gradient(135deg, rgba(255,255,255,0.2), transparent);
+            background: linear-gradient(135deg, rgba(255,255,255,0.3), transparent);
             transition: left 0.5s ease;
         }
 
         .btn-excel:hover {
             background: linear-gradient(135deg, #0A5A0A, #0B6ED7);
-            transform: translateY(-2px);
+            transform: translateY(-3px);
             color: white;
             box-shadow: 0 8px 32px rgba(15, 123, 15, 0.4);
         }
@@ -204,22 +227,41 @@
             left: 100%;
         }
 
-        .btn-back {
-            background: var(--light-gray);
-            color: var(--navy-blue);
-            border: 2px solid var(--navy-blue);
+        .logout-btn {
+            background: linear-gradient(135deg, var(--button-blue), #1E40AF);
+            color: white;
+            border: none;
             border-radius: 15px;
             padding: 1rem 2rem;
             font-weight: 600;
             text-decoration: none;
             transition: all 0.3s ease;
             display: inline-block;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
         }
 
-        .btn-back:hover {
-            background: var(--navy-blue);
+        .logout-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(255,255,255,0.3), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .logout-btn:hover {
+            background: linear-gradient(135deg, #1E40AF, #1E3A8A);
             color: white;
-            transform: translateY(-2px);
+            transform: translateY(-3px);
+            box-shadow: 0 8px 32px rgba(37, 99, 235, 0.4);
+        }
+
+        .logout-btn:hover::before {
+            left: 100%;
         }
 
         .alert {
@@ -239,6 +281,12 @@
             background: linear-gradient(135deg, rgba(220, 38, 38, 0.1), rgba(239, 68, 68, 0.1));
             color: var(--primary-red);
             border-left: 4px solid var(--primary-red);
+        }
+
+        .alert-warning {
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.1), rgba(251, 191, 36, 0.1));
+            color: #F59E0B;
+            border-left: 4px solid #F59E0B;
         }
 
         .info-card {
@@ -293,6 +341,21 @@
             align-items: center;
         }
 
+        .server-status {
+            background: #10B981;
+            color: white;
+            padding: 0.3rem 0.8rem;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            display: inline-block;
+            margin-bottom: 1rem;
+        }
+
+        .server-status.offline {
+            background: #EF4444;
+        }
+
         /* Responsive */
         @media (max-width: 768px) {
             .container-fluid {
@@ -303,7 +366,7 @@
                 padding: 2rem;
             }
             
-            .btn-submit, .btn-reset, .btn-excel, .btn-back {
+            .btn-submit, .btn-reset, .btn-excel, .logout-btn {
                 width: 100%;
                 margin-bottom: 1rem;
             }
@@ -571,11 +634,10 @@
 
                 <!-- Buttons -->
                 <div class="action-buttons">
-                    <a href="http://localhost:5000/dashboard" class="btn-back">
+                    <button class="logout-btn" onclick="returnToDashboard()">
                         <i class="fas fa-arrow-left me-2"></i>
                         Retour au Dashboard
-                    </a>
-                    
+                    </button>
                     <div class="right-buttons">
                         <button type="button" class="btn-reset" onclick="resetForm()">
                             <i class="fas fa-undo me-2"></i>
@@ -601,8 +663,19 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.js"></script>
 
     <script>
-        // Configuration de l'URL du serveur
-        const SERVER_URL = 'http://localhost:5000'; // Modifiez selon votre configuration
+        // Configuration automatique de l'URL du serveur
+        function getServerURL() {
+            // Si on est en production (sur Render ou autre plateforme de déploiement)
+            if (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+                // Utilise la même origine que la page actuelle
+                return window.location.origin;
+            }
+            // En développement local
+            return 'http://localhost:5000';
+        }
+
+        const SERVER_URL = getServerURL();
+        console.log('🔧 Configuration serveur automatique:', SERVER_URL);
 
         // Initialize AOS
         AOS.init({
@@ -649,6 +722,55 @@
 
         const form = document.getElementById('qualityForm');
         const inputs = form.querySelectorAll('input[type="number"]');
+
+        // Test de connectivité serveur amélioré
+        async function checkServerStatus() {
+            const statusElement = document.getElementById('serverStatus');
+            const statusText = document.getElementById('statusText');
+            
+            try {
+                // Teste plusieurs endpoints possibles
+                const endpoints = [
+                    `${SERVER_URL}/api/save_data`,
+                    `${SERVER_URL}/admin/update_threshold/api/save_data`,
+                    `${SERVER_URL}/health`,
+                    `${SERVER_URL}/`
+                ];
+                
+                let connected = false;
+                
+                for (const endpoint of endpoints) {
+                    try {
+                        const response = await fetch(endpoint, { 
+                            method: 'OPTIONS',
+                            timeout: 5000
+                        });
+                        
+                        if (response.status < 500) {
+                            connected = true;
+                            console.log('✅ Connexion serveur OK via:', endpoint);
+                            break;
+                        }
+                    } catch (e) {
+                        continue;
+                    }
+                }
+                
+                if (connected) {
+                    statusElement.classList.remove('offline');
+                    statusText.innerHTML = '<i class="fas fa-check me-1"></i>Serveur connecté';
+                } else {
+                    throw new Error('Aucun endpoint accessible');
+                }
+                
+            } catch (error) {
+                console.warn('⚠️ Serveur non accessible:', error.message);
+                statusElement.classList.add('offline');
+                statusText.innerHTML = '<i class="fas fa-exclamation-triangle me-1"></i>Serveur hors ligne';
+                
+                showMessage('warning', `Attention: Impossible de se connecter au serveur (${SERVER_URL}). Les données ne pourront pas être sauvegardées pour le moment.`);
+            }
+        }
 
         // Add event listeners for real-time calculations
         inputs.forEach(input => {
@@ -733,7 +855,7 @@
             return allValid;
         }
 
-        // Form submission with better error handling
+        // Form submission avec gestion d'erreur améliorée
         form.addEventListener('submit', async function(e) {
             e.preventDefault();
             
@@ -786,62 +908,85 @@
 
             console.log('📤 Données à envoyer:', formData);
 
-            try {
-                const response = await fetch(`${SERVER_URL}/api/save_data`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Accept': 'application/json'
-                    },
-                    body: JSON.stringify(formData),
-                });
-
-                console.log('📡 Réponse du serveur - Status:', response.status);
-
-                let result;
-                try {
-                    result = await response.json();
-                    console.log('📥 Réponse JSON:', result);
-                } catch (jsonError) {
-                    console.error('❌ Erreur parsing JSON:', jsonError);
-                    const textResult = await response.text();
-                    console.log('📄 Réponse texte:', textResult);
-                    throw new Error('Réponse du serveur invalide');
-                }
-
-                if (response.ok) {
-                    showMessage('success', result.message || 'Données enregistrées avec succès !');
-                    console.log('✅ Données sauvegardées avec succès');
-                    
-                    // Optionally reset form after successful save
-                    setTimeout(() => {
-                        if (confirm('Données enregistrées ! Voulez-vous réinitialiser le formulaire pour une nouvelle saisie ?')) {
-                            resetForm();
-                        }
-                    }, 1500);
-                    
-                } else {
-                    console.error('❌ Erreur serveur:', result);
-                    showMessage('danger', result.error || 'Erreur lors de l\'enregistrement des données.');
-                }
-            } catch (error) {
-                console.error('💥 Erreur de connexion:', error);
+            // Essayer plusieurs endpoints possibles
+            const endpoints = [
+                `${SERVER_URL}/api/save_data`,
                 
-                // More detailed error messages
-                if (error.name === 'TypeError' && error.message.includes('fetch')) {
-                    showMessage('danger', `Impossible de se connecter au serveur (${SERVER_URL}). Vérifiez que le serveur Flask est démarré.`);
-                } else if (error.message.includes('JSON')) {
-                    showMessage('danger', 'Erreur de communication avec le serveur. Réponse invalide reçue.');
-                } else {
-                    showMessage('danger', `Erreur technique: ${error.message}`);
+            ];
+
+            let success = false;
+            let lastError = null;
+
+            for (const endpoint of endpoints) {
+                try {
+                    console.log(`🔗 Tentative de connexion à: ${endpoint}`);
+                    
+                    const response = await fetch(endpoint, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json'
+                        },
+                        body: JSON.stringify(formData),
+                    });
+
+                    console.log(`📡 Réponse de ${endpoint} - Status:`, response.status);
+
+                    if (response.ok) {
+                        let result;
+                        try {
+                            result = await response.json();
+                            console.log('📥 Réponse JSON:', result);
+                        } catch (jsonError) {
+                            console.log('📄 Réponse non-JSON, mais status OK');
+                            result = { message: 'Données enregistrées avec succès !' };
+                        }
+
+                        showMessage('success', result.message || 'Données enregistrées avec succès !');
+                        console.log('✅ Données sauvegardées avec succès via:', endpoint);
+                        success = true;
+                        
+                        setTimeout(() => {
+                            if (confirm('Données enregistrées ! Voulez-vous réinitialiser le formulaire pour une nouvelle saisie ?')) {
+                                resetForm();
+                            }
+                        }, 1500);
+                        
+                        break;
+                    } else if (response.status === 404) {
+                        console.log(`❌ Endpoint ${endpoint} non trouvé (404)`);
+                        continue;
+                    } else {
+                        const errorText = await response.text();
+                        console.error(`❌ Erreur ${response.status} sur ${endpoint}:`, errorText);
+                        lastError = new Error(`Erreur ${response.status}: ${errorText}`);
+                        continue;
+                    }
+                    
+                } catch (error) {
+                    console.error(`💥 Erreur de connexion à ${endpoint}:`, error);
+                    lastError = error;
+                    continue;
                 }
-            } finally {
-                // Reset loading state
-                submitText.textContent = 'Enregistrer les Données';
-                submitSpinner.classList.add('d-none');
-                submitBtn.disabled = false;
-                console.log('🔄 État du bouton réinitialisé');
             }
+
+            if (!success) {
+                console.error('❌ Aucun endpoint n\'a fonctionné');
+                
+                if (lastError && lastError.name === 'TypeError' && lastError.message.includes('fetch')) {
+                    showMessage('danger', `Impossible de se connecter au serveur. Vérifiez que le serveur Flask est démarré et accessible à l'adresse : ${SERVER_URL}`);
+                } else if (lastError) {
+                    showMessage('danger', `Erreur serveur: ${lastError.message}`);
+                } else {
+                    showMessage('danger', 'Erreur inconnue lors de la connexion au serveur. Veuillez réessayer plus tard.');
+                }
+            }
+
+            // Reset loading state
+            submitText.textContent = 'Enregistrer les Données';
+            submitSpinner.classList.add('d-none');
+            submitBtn.disabled = false;
+            console.log('🔄 État du bouton réinitialisé');
         });
 
         function showMessage(type, message) {
@@ -849,7 +994,7 @@
             const alertDiv = document.createElement('div');
             alertDiv.className = `alert alert-${type} alert-dismissible fade show`;
             alertDiv.innerHTML = `
-                <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-triangle'} me-2"></i>
+                <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'warning' ? 'exclamation-triangle' : 'exclamation-circle'} me-2"></i>
                 ${message}
                 <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
             `;
@@ -860,8 +1005,8 @@
             
             flashMessages.appendChild(alertDiv);
             
-            // Auto-dismiss after 8 seconds for success, 12 seconds for errors
-            const dismissTime = type === 'success' ? 8000 : 12000;
+            // Auto-dismiss after time based on type
+            const dismissTime = type === 'success' ? 8000 : type === 'warning' ? 15000 : 12000;
             setTimeout(() => {
                 if (alertDiv.parentElement) {
                     alertDiv.remove();
@@ -1035,7 +1180,8 @@
                 ['INFORMATIONS D\'EXPORT', '', '', ''],
                 ['Date d\'export', new Date().toLocaleDateString('fr-FR'), 'Métadonnées', 'Date de génération du rapport'],
                 ['Heure d\'export', new Date().toLocaleTimeString('fr-FR'), 'Métadonnées', 'Heure de génération du rapport'],
-                ['Version', '1.0', 'Métadonnées', 'Version du système de saisie']
+                ['Version', '1.0', 'Métadonnées', 'Version du système de saisie'],
+                ['Serveur', SERVER_URL, 'Métadonnées', 'URL du serveur utilisé']
             ];
 
             const csvContent = excelData.map(row =>
@@ -1089,19 +1235,19 @@
             return months[parseInt(monthNumber)] || monthNumber || 'Non défini';
         }
 
-        // Enhanced debugging
-        console.log('🚀 Interface de saisie ADI Quality initialisée');
-        console.log('🔧 Configuration serveur:', SERVER_URL);
-        
-        // Test server connection on load
-        fetch(`${SERVER_URL}/api/save_data`, { method: 'OPTIONS' })
-            .then(response => {
-                console.log('🔗 Test de connexion serveur - OK');
-            })
-            .catch(error => {
-                console.warn('⚠️ Serveur non accessible:', error.message);
-                showMessage('warning', 'Attention: Le serveur semble indisponible. Vérifiez que Flask est démarré sur ' + SERVER_URL);
-            });
+        // Initialisation et vérification du serveur au chargement
+        window.addEventListener('load', function() {
+            console.log('🚀 Interface de saisie ADI Quality initialisée');
+            console.log('🔧 Configuration serveur automatique:', SERVER_URL);
+            
+            // Test de connexion serveur au chargement
+            checkServerStatus();
+        });
+
+        function returnToDashboard() {
+            console.log('Redirecting to /quality_manager/dashboard');
+            window.location.href = '/quality_manager/dashboard';
+        }
     </script>
 </body>
 </html>
