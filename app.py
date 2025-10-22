@@ -995,6 +995,72 @@ def get_dashboard_stats():
         'recent_activities': recent_activities[:5]  # Limiter à 5 activités
     })
 
+def calculate_ytd(conn, ateliers_interface, annee, mois_max, uap, atelier_param):
+    total_pieces_exportees = total_pieces_reclamees = total_alertes = 0
+    total_pieces_retouchees = total_pieces_rebutees = total_pieces_controlees = 0
+    total_cout_rebut = total_reclamations_off = 0
+
+    uap_condition = " AND uap = ?" if uap != 'all' else ""
+    uap_params = [uap] if uap != 'all' else []
+
+    for mois in range(1, mois_max + 1):
+        for atelier in ateliers_interface:
+            base_params = [mois, annee, atelier] + uap_params
+            
+            total_pieces_exportees += conn.execute(f'''
+                SELECT COALESCE(SUM(quantite), 0) FROM pieces_exportees 
+                WHERE mois=? AND annee=? AND atelier=?{uap_condition}
+            ''', base_params).fetchone()[0]
+            
+            total_pieces_reclamees += conn.execute(f'''
+                SELECT COALESCE(SUM(quantite), 0) FROM pieces_reclamees 
+                WHERE mois=? AND annee=? AND atelier=?{uap_condition}
+            ''', base_params).fetchone()[0]
+            
+            total_alertes += conn.execute(f'''
+                SELECT COALESCE(SUM(nombre_alertes), 0) FROM quantite_alertes 
+                WHERE mois=? AND annee=? AND atelier=?{uap_condition}
+            ''', base_params).fetchone()[0]
+            
+            total_pieces_retouchees += conn.execute(f'''
+                SELECT COALESCE(SUM(quantite), 0) FROM pieces_retouchees 
+                WHERE mois=? AND annee=? AND atelier=?{uap_condition}
+            ''', base_params).fetchone()[0]
+            
+            total_pieces_rebutees += conn.execute(f'''
+                SELECT COALESCE(SUM(quantite), 0) FROM pieces_rebutees 
+                WHERE mois=? AND annee=? AND atelier=?{uap_condition}
+            ''', base_params).fetchone()[0]
+            
+            total_pieces_controlees += conn.execute(f'''
+                SELECT COALESCE(SUM(quantite), 0) FROM pieces_controlees 
+                WHERE mois=? AND annee=? AND atelier=?{uap_condition}
+            ''', base_params).fetchone()[0]
+            
+            total_cout_rebut += conn.execute(f'''
+                SELECT COALESCE(SUM(montant), 0) FROM cout_rebut 
+                WHERE mois=? AND annee=? AND atelier=?{uap_condition}
+            ''', base_params).fetchone()[0]
+            
+            total_reclamations_off += conn.execute(f'''
+                SELECT COALESCE(SUM(nombre), 0) FROM reclamations_officielles 
+                WHERE mois=? AND annee=? AND atelier=?{uap_condition}
+            ''', base_params).fetchone()[0]
+
+    ppm_officiel = (total_pieces_reclamees / total_pieces_exportees * 1000000) if total_pieces_exportees > 0 else 0
+    ppm_non_officiel = (total_alertes / total_pieces_exportees * 1000000) if total_pieces_exportees > 0 else 0
+    taux_rebut = (total_pieces_rebutees / total_pieces_controlees * 100) if total_pieces_controlees > 0 else 0
+    taux_retouche = (total_pieces_retouchees / total_pieces_controlees * 100) if total_pieces_controlees > 0 else 0
+
+    return {
+        'ppm_officiel': ppm_officiel,
+        'ppm_non_officiel': ppm_non_officiel,
+        'taux_rebut': taux_rebut,
+        'taux_retouche': taux_retouche,
+        'cout_rebut': total_cout_rebut,
+        'nombre_reclamations': total_reclamations_off,
+        'cnq': 0
+    }
 # CODE CORRIGÉ POUR L'API CNQ
 
 # Dans votre fichier app.py ou principal Flask, remplacez la route /api/charts_data par cette version corrigée et complète.
@@ -1025,7 +1091,7 @@ def get_charts_data():
     # Mapping des indicateurs pour les seuils
     seuil_mapping = {
         'ppm_officiel': 'PPM Officiel',
-        'ppm_non_officiel': 'PPM Non Officiel', 
+        'ppm_non_officiel': 'PPM Non Officiel',
         'taux_rebut': 'Taux de Rebut',
         'taux_retouche': 'Taux de Retouche',
         'cout_rebut': 'Coût de Rebut',
@@ -1118,19 +1184,19 @@ def get_charts_data():
                     
                     total_pieces_exportees += conn.execute(f'''
                         SELECT COALESCE(SUM(quantite), 0) as total 
-                        FROM pieces_exportees 
+                        FROM pieces_exportees
                         WHERE mois = ? AND annee = ? AND atelier = ?{uap_condition}
                     ''', base_params).fetchone()['total']
                     
                     total_pieces_reclamees += conn.execute(f'''
                         SELECT COALESCE(SUM(quantite), 0) as total 
-                        FROM pieces_reclamees 
+                        FROM pieces_reclamees
                         WHERE mois = ? AND annee = ? AND atelier = ?{uap_condition}
                     ''', base_params).fetchone()['total']
                     
                     total_alertes += conn.execute(f'''
                         SELECT COALESCE(SUM(nombre_alertes), 0) as total 
-                        FROM quantite_alertes 
+                        FROM quantite_alertes
                         WHERE mois = ? AND annee = ? AND atelier = ?{uap_condition}
                     ''', base_params).fetchone()['total']
                     
@@ -1253,7 +1319,7 @@ def get_charts_data():
             for api_indicator, db_indicator in seuil_mapping.items():
                 try:
                     seuil_result = conn.execute('''
-                        SELECT valeur_seuil 
+                        SELECT valeur_seuil
                         FROM seuils
                         WHERE atelier = ? AND indicateur = ?
                         ORDER BY date_modification DESC
@@ -1293,8 +1359,6 @@ def get_charts_data():
         else:
             seuils['cnq'] = 0
 
-        conn.close()
-
         # Préparer la réponse
         response_data = {
             'monthly_data': monthly_data,
@@ -1308,7 +1372,17 @@ def get_charts_data():
         # NOUVEAU : Ajouter les données brutes si demandées
         if raw_data:
             response_data['raw_monthly_data'] = raw_monthly_data
-
+            current_year = datetime.now().year
+            current_month = datetime.now().month - 1
+            ytd_current = calculate_ytd(conn, ateliers_interface, current_year, current_month, uap, atelier_param)
+            ytd_previous = calculate_ytd(conn, ateliers_interface, current_year - 1, current_month, uap, atelier_param)
+            total_previous = calculate_ytd(conn, ateliers_interface, current_year - 1, 12, uap, atelier_param)
+            response_data.update({
+        'ytd_current': ytd_current,
+        'ytd_previous': ytd_previous,
+        'total_previous': total_previous
+    })
+        conn.close()
         return jsonify(response_data)
 
     except Exception as e:
@@ -1323,11 +1397,10 @@ def get_ytd_data():
     atelier_param = request.args.get('atelier')
     annee = request.args.get('annee', type=int, default=datetime.now().year)
     uap = request.args.get('uap', 'all')
-    aggregate = request.args.get('aggregate')
     
     conn = get_db_connection()
     
-    # Liste des ateliers individuels
+    # Liste des ateliers
     all_ateliers = ['Colliers', 'Composite', 'Isolant souple', 'Manchons', 'Moulage', 'Protections thermiques', 'Racks', 'Système de visualisation']
     
     try:
@@ -1339,142 +1412,116 @@ def get_ytd_data():
                 ateliers_interface = ['Manchons', 'Colliers', 'Racks', 'Moulage', 'Composite', 'Système de visualisation']
             else:  # Total
                 ateliers_interface = all_ateliers
-        elif atelier_param and atelier_param != 'Total':
-            ateliers_interface = [a.strip() for a in atelier_param.split(',')]
         else:
             ateliers_interface = all_ateliers
         
-        # Construction des conditions UAP
-        uap_condition = ""
-        uap_params = []
-        if uap != 'all':
-            uap_condition = " AND uap = ?"
-            uap_params = [uap]
+        # UAP condition
+        uap_condition = " AND uap = ?" if uap != 'all' else ""
+        uap_params = [uap] if uap != 'all' else []
         
-        # Déterminer la période pour YTD
+        # Période YTD (MOIS ACTUEL - 1)
         if annee == datetime.now().year:
-            # Pour l'année en cours, jusqu'au mois actuel
-            current_month = datetime.now().month
+            current_month = max(datetime.now().month - 1, 1)  # OCTOBRE → 9
         else:
-            # Pour les années passées, toute l'année (jusqu'à décembre)
             current_month = 12
         
-        ytd_data = {}
+        # Initialiser totaux
+        ytd_pieces_exportees = ytd_pieces_reclamees = ytd_alertes = 0
+        ytd_pieces_retouchees = ytd_pieces_rebutees = ytd_pieces_controlees = 0
+        ytd_cout_rebut = ytd_reclamations_off = 0
+        ytd_cnq_sum = 0  # ✅ SOMME CNQ
         
-        # Initialiser les totaux cumulatifs pour YTD (correction du calcul des ratios)
-        ytd_pieces_exportees = 0
-        ytd_pieces_reclamees = 0
-        ytd_alertes = 0
-        ytd_pieces_retouchees = 0
-        ytd_pieces_rebutees = 0
-        ytd_pieces_controlees = 0
-        ytd_cout_rebut = 0
-        ytd_reclamations_off = 0
-        ytd_cnq_sum = 0
-        ytd_cnq_count = 0
-        
-        # Calculer les sommes cumulatives pour YTD sur tous les ateliers demandés
+        # BOUCLE MOIS
         for mois in range(1, current_month + 1):
-            for atelier_interface in ateliers_interface:
-                base_params = [mois, annee, atelier_interface] + uap_params
-                
-                ytd_pieces_exportees += conn.execute(f'''
-                    SELECT COALESCE(SUM(quantite), 0) 
-                    FROM pieces_exportees 
-                    WHERE mois = ? AND annee = ? AND atelier = ?{uap_condition}
-                ''', base_params).fetchone()[0]
-                
-                ytd_pieces_reclamees += conn.execute(f'''
-                    SELECT COALESCE(SUM(quantite), 0) 
-                    FROM pieces_reclamees 
-                    WHERE mois = ? AND annee = ? AND atelier = ?{uap_condition}
-                ''', base_params).fetchone()[0]
-                
-                ytd_alertes += conn.execute(f'''
-                    SELECT COALESCE(SUM(nombre_alertes), 0) 
-                    FROM quantite_alertes 
-                    WHERE mois = ? AND annee = ? AND atelier = ?{uap_condition}
-                ''', base_params).fetchone()[0]
-                
-                ytd_pieces_retouchees += conn.execute(f'''
-                    SELECT COALESCE(SUM(quantite), 0) 
-                    FROM pieces_retouchees 
-                    WHERE mois = ? AND annee = ? AND atelier = ?{uap_condition}
-                ''', base_params).fetchone()[0]
-                
-                ytd_pieces_rebutees += conn.execute(f'''
-                    SELECT COALESCE(SUM(quantite), 0) 
-                    FROM pieces_rebutees 
-                    WHERE mois = ? AND annee = ? AND atelier = ?{uap_condition}
-                ''', base_params).fetchone()[0]
-                
-                ytd_pieces_controlees += conn.execute(f'''
-                    SELECT COALESCE(SUM(quantite), 0) 
-                    FROM pieces_controlees 
-                    WHERE mois = ? AND annee = ? AND atelier = ?{uap_condition}
-                ''', base_params).fetchone()[0]
-                
-                ytd_cout_rebut += conn.execute(f'''
-                    SELECT COALESCE(SUM(montant), 0) 
-                    FROM cout_rebut 
-                    WHERE mois = ? AND annee = ? AND atelier = ?{uap_condition}
-                ''', base_params).fetchone()[0]
-                
-                ytd_reclamations_off += conn.execute(f'''
-                    SELECT COALESCE(SUM(nombre), 0) 
-                    FROM reclamations_officielles 
-                    WHERE mois = ? AND annee = ? AND atelier = ?{uap_condition}
-                ''', base_params).fetchone()[0]
-            
-            # Calcul CNQ YTD (moyenne des valeurs mensuelles depuis table cnq)
+            # ✅ CNQ : UNIQUEMENT POUR atelier_param == 'Total'
             if atelier_param == 'Total':
                 cnq_result = conn.execute('''
                     SELECT valeur 
                     FROM cnq 
                     WHERE mois = ? AND annee = ? AND atelier = 'Total'
                 ''', (mois, annee)).fetchone()
+                
                 if cnq_result:
                     ytd_cnq_sum += cnq_result['valeur']
-                    ytd_cnq_count += 1
+            
+            # AUTRES INDICATEURS (tous ateliers)
+            for atelier in ateliers_interface:
+                base_params = [mois, annee, atelier] + uap_params
+                
+                ytd_pieces_exportees += conn.execute(f'''
+                    SELECT COALESCE(SUM(quantite), 0) FROM pieces_exportees 
+                    WHERE mois=? AND annee=? AND atelier=?{uap_condition}
+                ''', base_params).fetchone()[0]
+                
+                ytd_pieces_reclamees += conn.execute(f'''
+                    SELECT COALESCE(SUM(quantite), 0) FROM pieces_reclamees 
+                    WHERE mois=? AND annee=? AND atelier=?{uap_condition}
+                ''', base_params).fetchone()[0]
+                
+                ytd_alertes += conn.execute(f'''
+                    SELECT COALESCE(SUM(nombre_alertes), 0) FROM quantite_alertes 
+                    WHERE mois=? AND annee=? AND atelier=?{uap_condition}
+                ''', base_params).fetchone()[0]
+                
+                ytd_pieces_retouchees += conn.execute(f'''
+                    SELECT COALESCE(SUM(quantite), 0) FROM pieces_retouchees 
+                    WHERE mois=? AND annee=? AND atelier=?{uap_condition}
+                ''', base_params).fetchone()[0]
+                
+                ytd_pieces_rebutees += conn.execute(f'''
+                    SELECT COALESCE(SUM(quantite), 0) FROM pieces_rebutees 
+                    WHERE mois=? AND annee=? AND atelier=?{uap_condition}
+                ''', base_params).fetchone()[0]
+                
+                ytd_pieces_controlees += conn.execute(f'''
+                    SELECT COALESCE(SUM(quantite), 0) FROM pieces_controlees 
+                    WHERE mois=? AND annee=? AND atelier=?{uap_condition}
+                ''', base_params).fetchone()[0]
+                
+                ytd_cout_rebut += conn.execute(f'''
+                    SELECT COALESCE(SUM(montant), 0) FROM cout_rebut 
+                    WHERE mois=? AND annee=? AND atelier=?{uap_condition}
+                ''', base_params).fetchone()[0]
+                
+                ytd_reclamations_off += conn.execute(f'''
+                    SELECT COALESCE(SUM(nombre), 0) FROM reclamations_officielles 
+                    WHERE mois=? AND annee=? AND atelier=?{uap_condition}
+                ''', base_params).fetchone()[0]
         
-        # Calcul des indicateurs YTD basés sur les formules correctes pour les ratios
+        # CALCULS FINAUX
         ytd_ppm_officiel = (ytd_pieces_reclamees / ytd_pieces_exportees * 1000000) if ytd_pieces_exportees > 0 else 0
         ytd_ppm_non_officiel = (ytd_alertes / ytd_pieces_exportees * 1000000) if ytd_pieces_exportees > 0 else 0
         ytd_taux_retouche = (ytd_pieces_retouchees / ytd_pieces_controlees * 100) if ytd_pieces_controlees > 0 else 0
         ytd_taux_rebut = (ytd_pieces_rebutees / ytd_pieces_controlees * 100) if ytd_pieces_controlees > 0 else 0
-        ytd_cnq_moyen = ytd_cnq_sum / ytd_cnq_count if ytd_cnq_count > 0 else 0
+        ytd_cnq = ytd_cnq_sum  # ✅ SOMME PURE = 4.89
         
-        # Nom d'affichage
-        if atelier_param in ['UAP1', 'UAP2', 'Total']:
-            display_name = atelier_param
-        else:
-            display_name = atelier_param if atelier_param else 'Total'
+        display_name = atelier_param or 'Total'
         
-        ytd_data[display_name] = {
-            'ppm_officiel': ytd_ppm_officiel,
-            'ppm_non_officiel': ytd_ppm_non_officiel,
-            'taux_rebut': ytd_taux_rebut,
-            'taux_retouche': ytd_taux_retouche,
-            'cout_rebut': ytd_cout_rebut,
-            'cnq': ytd_cnq_moyen,
-            'nombre_reclamations': ytd_reclamations_off
+        ytd_data = {
+            display_name: {
+                'ppm_officiel': round(ytd_ppm_officiel, 3),
+                'ppm_non_officiel': round(ytd_ppm_non_officiel, 3),
+                'taux_rebut': round(ytd_taux_rebut, 3),
+                'taux_retouche': round(ytd_taux_retouche, 3),
+                'cout_rebut': round(ytd_cout_rebut, 3),
+                'cnq': round(ytd_cnq, 3),  # ✅ 4.890
+                'nombre_reclamations': int(ytd_reclamations_off)
+            }
         }
         
         conn.close()
         
-        print(f"=== DEBUG YTD ===")
-        print(f"Atelier: {display_name}")
-        print(f"Période: {current_month} mois de l'année {annee}")
-        print(f"YTD PPM Officiel: {ytd_pieces_reclamees}/{ytd_pieces_exportees} = {ytd_ppm_officiel}")
-        print(f"YTD Taux Rebut: {ytd_pieces_rebutees}/{ytd_pieces_controlees} = {ytd_taux_rebut}")
-        print(f"================")
+        # DEBUG
+        print(f"=== YTD {display_name} {annee} ===")
+        print(f"CNQ SOMME: {ytd_cnq} (9 mois)")
+        print(f"PPM: {ytd_ppm_officiel}")
+        print("========================")
         
         return jsonify({'ytd_data': ytd_data, 'annee': annee, 'uap': uap})
         
     except Exception as e:
         conn.close()
-        print(f"Erreur dans get_ytd_data: {e}")
-        return jsonify({'error': f'Erreur serveur: {str(e)}'}), 500
+        return jsonify({'error': str(e)}), 500
 
 
 

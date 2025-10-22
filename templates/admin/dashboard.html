@@ -1547,69 +1547,75 @@ async function analyzeIndicator(indicator, chartId) {
         }
 
         // Calculer les YTD et Total
-        function calculateCorrectYTD(monthlyData, rawData, indicator, months) {
-            if (!rawData || !rawData.raw_monthly_data) {
-                console.log(`Fallback YTD pour ${indicator}: somme simple`);
-                return monthlyData.slice(0, months).reduce((sum, val) => sum + val, 0);
-            }
 
-            const isRatioIndicator = ['ppm_officiel', 'ppm_non_officiel', 'taux_rebut', 'taux_retouche'].includes(indicator);
+// ✅ SOLUTION : DÉFINIR isTotalYear
+const isTotalYear = yearSelection === `${previousYear}`;
 
-            if (isRatioIndicator) {
-                console.log(`Calcul YTD correct pour indicateur ratio: ${indicator}`);
-                let totalNumerateur = 0;
-                let totalDenominateur = 0;
+function calculateCorrectYTD(monthlyData, rawData, indicator, months, isTotalYear) {
+    const maxMonth = isTotalYear ? months : months - 1;
+    
+    if (!rawData || !rawData.raw_monthly_data) {
+        console.log(`Fallback YTD pour ${indicator}: somme simple jusqu'au mois ${maxMonth}`);
+        return monthlyData.slice(0, maxMonth).reduce((sum, val) => sum + val, 0);
+    }
 
-                for (let month = 1; month <= months; month++) {
-                    const rawMonth = rawData.raw_monthly_data[month];
-                    if (!rawMonth) continue;
+    const isRatioIndicator = ['ppm_officiel', 'ppm_non_officiel', 'taux_rebut', 'taux_retouche'].includes(indicator);
 
-                    switch (indicator) {
-                        case 'ppm_officiel':
-                            totalNumerateur += rawMonth.pieces_reclamees || 0;
-                            totalDenominateur += rawMonth.pieces_exportees || 0;
-                            break;
-                        case 'ppm_non_officiel':
-                            totalNumerateur += rawMonth.alertes || 0;
-                            totalDenominateur += rawMonth.pieces_exportees || 0;
-                            break;
-                        case 'taux_rebut':
-                            totalNumerateur += rawMonth.pieces_rebutees || 0;
-                            totalDenominateur += rawMonth.pieces_controlees || 0;
-                            break;
-                        case 'taux_retouche':
-                            totalNumerateur += rawMonth.pieces_retouchees || 0;
-                            totalDenominateur += rawMonth.pieces_controlees || 0;
-                            break;
-                    }
-                }
+    if (isRatioIndicator) {
+        console.log(`Calcul YTD CORRIGÉ pour ${indicator} jusqu'au mois ${maxMonth}`);
+        let totalNumerateur = 0;
+        let totalDenominateur = 0;
 
-                if (totalDenominateur === 0) return 0;
+        for (let month = 1; month <= maxMonth; month++) {
+            const rawMonth = rawData.raw_monthly_data[month];
+            if (!rawMonth) continue;
 
-                switch (indicator) {
-                    case 'ppm_officiel':
-                    case 'ppm_non_officiel':
-                        return (totalNumerateur / totalDenominateur * 1000000);
-                    case 'taux_rebut':
-                    case 'taux_retouche':
-                        return (totalNumerateur / totalDenominateur * 100);
-                    default:
-                        return 0;
-                }
-            } else {
-                console.log(`Calcul YTD somme pour indicateur absolu: ${indicator}`);
-                return monthlyData.slice(0, months).reduce((sum, val) => sum + val, 0);
+            switch (indicator) {
+                case 'ppm_officiel':
+                    totalNumerateur += rawMonth.pieces_reclamees || 0;
+                    totalDenominateur += rawMonth.pieces_exportees || 0;
+                    break;
+                case 'ppm_non_officiel':
+                    totalNumerateur += rawMonth.alertes || 0;
+                    totalDenominateur += rawMonth.pieces_exportees || 0;
+                    break;
+                case 'taux_rebut':
+                    totalNumerateur += rawMonth.pieces_rebutees || 0;
+                    totalDenominateur += rawMonth.pieces_controlees || 0;
+                    break;
+                case 'taux_retouche':
+                    totalNumerateur += rawMonth.pieces_retouchees || 0;
+                    totalDenominateur += rawMonth.pieces_controlees || 0;
+                    break;
             }
         }
+
+        if (totalDenominateur === 0) return 0;
+
+        switch (indicator) {
+            case 'ppm_officiel':
+            case 'ppm_non_officiel':
+                return (totalNumerateur / totalDenominateur * 1000000);
+            case 'taux_rebut':
+            case 'taux_retouche':
+                return (totalNumerateur / totalDenominateur * 100);
+            default:
+                return 0;
+        }
+    } else {
+        console.log(`Calcul ${isTotalYear ? 'TOTAL' : 'YTD'} somme pour ${indicator} jusqu'au mois ${maxMonth}`);
+        return monthlyData.slice(0, maxMonth).reduce((sum, val) => sum + val, 0);
+    }
+}
 
         let ytdCurrent = 0, ytdPrevious = 0, totalPrevious = 0;
 
         if (dataCurrent) {
-            ytdCurrent = calculateCorrectYTD(currentData, rawDataCurrent, indicator, currentMonth);
+            ytdCurrent = calculateCorrectYTD(currentData, rawDataCurrent, indicator, currentMonth,false);
         }
         if (dataPrevious) {
-            ytdPrevious = calculateCorrectYTD(previousData, rawDataPrevious, indicator, currentMonth);
-            totalPrevious = calculateCorrectYTD(previousData, rawDataPrevious, indicator, 12);
+            ytdPrevious = calculateCorrectYTD(previousData, rawDataPrevious, indicator, currentMonth,false);
+            totalPrevious = calculateCorrectYTD(previousData, rawDataPrevious, indicator, 12,true);
         }
 
         console.log(`YTD CORRIGÉ pour ${indicator}:`);
@@ -1840,7 +1846,7 @@ function displayYTDData(ytdData) {
             } else if (atelier === 'UAP2') {
                 apiUrl = `/api/ytd_data?atelier=Manchons,Colliers,Racks,Moulage,Composite,Système de visualisation&annee=${currentYear}&aggregate=sum`;
             } else if (atelier === 'Total') {
-                apiUrl = `/api/ytd_data?annee=${currentYear}&aggregate=total`;
+                apiUrl = `/api/ytd_data?atelier=Total&annee=${currentYear}`;
             } else {
                 apiUrl = `/api/ytd_data?atelier=${encodeURIComponent(atelier)}&annee=${currentYear}`;
             }

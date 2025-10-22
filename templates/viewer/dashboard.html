@@ -1101,11 +1101,15 @@
         }
 
 // Fonction corrigée pour analyzeIndicator - remplacer dans votre dashboard
+// Fonction  analyzeIndicator -
 async function analyzeIndicator(indicator, chartId) {
     const atelier = document.getElementById('atelierSelect').value;
     const yearSelection = document.getElementById('anneeSelect').value;
-    const effectiveMonth = (yearSelection === previousYear.toString() || yearSelection === 'both') && yearSelection !== currentYear.toString() ? 12 : currentMonth;
+    const currentMonth = new Date().getMonth() + 1;
     const months = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Jun', 'Jul', 'Aoû', 'Sep', 'Oct', 'Nov', 'Déc'];
+
+    const currentYear = new Date().getFullYear();
+    const previousYear = currentYear - 1;
 
     console.log(`=== analyzeIndicator CORRIGÉ ===`);
     console.log(`Indicateur: ${indicator}, ChartId: ${chartId}, Atelier: ${atelier}`);
@@ -1123,57 +1127,51 @@ async function analyzeIndicator(indicator, chartId) {
     showLoading(chartId);
 
     try {
-        let apiUrlCurrent = '';
-        let apiUrlPrevious = '';
+        let apiUrl = '';
         if (atelier === 'Total') {
-            apiUrlCurrent = `/api/charts_data?annee=${currentYear}&aggregate=total`;
-            apiUrlPrevious = `/api/charts_data?annee=${previousYear}&aggregate=total`;
+            apiUrl = `/api/charts_data?annee=${currentYear}&aggregate=total`;
         } else if (atelier === 'UAP1') {
-            apiUrlCurrent = `/api/charts_data?atelier=Protections thermiques,Isolant souple&annee=${currentYear}&aggregate=sum`;
-            apiUrlPrevious = `/api/charts_data?atelier=Protections thermiques,Isolant souple&annee=${previousYear}&aggregate=sum`;
+            apiUrl = `/api/charts_data?atelier=Protections thermiques,Isolant souple&annee=${currentYear}&aggregate=sum`;
         } else if (atelier === 'UAP2') {
-            apiUrlCurrent = `/api/charts_data?atelier=Manchons,Colliers,Racks,Moulage,Composite,Système de visualisation&annee=${currentYear}&aggregate=sum`;
-            apiUrlPrevious = `/api/charts_data?atelier=Manchons,Colliers,Racks,Moulage,Composite,Système de visualisation&annee=${previousYear}&aggregate=sum`;
+            apiUrl = `/api/charts_data?atelier=Manchons,Colliers,Racks,Moulage,Composite,Système de visualisation&annee=${currentYear}&aggregate=sum`;
         } else {
-            apiUrlCurrent = `/api/charts_data?atelier=${encodeURIComponent(atelier)}&annee=${currentYear}`;
-            apiUrlPrevious = `/api/charts_data?atelier=${encodeURIComponent(atelier)}&annee=${previousYear}`;
+            apiUrl = `/api/charts_data?atelier=${encodeURIComponent(atelier)}&annee=${currentYear}`;
         }
 
-        console.log(`API URL pour ${indicator}: ${apiUrlCurrent}`);
+        console.log(`API URL pour ${indicator}: ${apiUrl}`);
 
         let dataCurrent = null;
         let dataPrevious = null;
 
-        if (yearSelection === currentYear.toString() || yearSelection === 'both') {
-            const responseCurrent = await fetch(apiUrlCurrent);
+        // Récupérer les données pour l'année sélectionnée
+        if (yearSelection === `${currentYear}` || yearSelection === 'both') {
+            const responseCurrent = await fetch(apiUrl);
             if (!responseCurrent.ok) throw new Error(`Erreur API: ${responseCurrent.status}`);
             dataCurrent = await responseCurrent.json();
         }
 
-        if (yearSelection === previousYear.toString() || yearSelection === 'both') {
-            const responsePrevious = await fetch(apiUrlPrevious);
+        if (yearSelection === `${previousYear}` || yearSelection === 'both') {
+            const prevApiUrl = apiUrl.replace(`annee=${currentYear}`, `annee=${previousYear}`);
+            const responsePrevious = await fetch(prevApiUrl);
             if (!responsePrevious.ok) throw new Error(`Erreur API: ${responsePrevious.status}`);
             dataPrevious = await responsePrevious.json();
         }
-        
-        console.log(`Données reçues pour ${indicator}:`, dataCurrent || dataPrevious);
-        
-        // ===== NOUVELLE LOGIQUE POUR RÉCUPÉRER LES DONNÉES BRUTES =====
+
         // Récupérer les données brutes pour calculer correctement les YTD
         let rawDataCurrent = null;
         let rawDataPrevious = null;
-        
+
         try {
-            if (yearSelection === currentYear.toString() || yearSelection === 'both') {
-                const rawApiUrlCurrent = apiUrlCurrent + '&raw_data=true';
+            if (yearSelection === `${currentYear}` || yearSelection === 'both') {
+                const rawApiUrlCurrent = apiUrl + '&raw_data=true';
                 const rawResponseCurrent = await fetch(rawApiUrlCurrent);
                 if (rawResponseCurrent.ok) {
                     rawDataCurrent = await rawResponseCurrent.json();
                 }
             }
-            
-            if (yearSelection === previousYear.toString() || yearSelection === 'both') {
-                const rawApiUrlPrevious = apiUrlPrevious + '&raw_data=true';
+
+            if (yearSelection === `${previousYear}` || yearSelection === 'both') {
+                const rawApiUrlPrevious = apiUrl.replace(`annee=${currentYear}`, `annee=${previousYear}`) + '&raw_data=true';
                 const rawResponsePrevious = await fetch(rawApiUrlPrevious);
                 if (rawResponsePrevious.ok) {
                     rawDataPrevious = await rawResponsePrevious.json();
@@ -1186,8 +1184,8 @@ async function analyzeIndicator(indicator, chartId) {
         let datasets = [];
         const currentData = [];
         const previousData = [];
-        
-        // Récupérer les données mensuelles normales
+
+        // Récupérer les données mensuelles
         for (let month = 1; month <= 12; month++) {
             if (dataCurrent) {
                 currentData.push(dataCurrent.monthly_data[month][indicator] || 0);
@@ -1197,10 +1195,10 @@ async function analyzeIndicator(indicator, chartId) {
             }
         }
 
-        const threshold = (dataCurrent || dataPrevious).seuils[indicator] || 0;
+        const threshold = (dataCurrent || dataPrevious)?.seuils[indicator] || 0;
 
         // Ajouter les datasets pour les données mensuelles
-        if (yearSelection === currentYear.toString() || yearSelection === 'both') {
+        if (yearSelection === `${currentYear}` || yearSelection === 'both') {
             datasets.push({
                 type: chartTypes.current === 'area' ? 'line' : chartTypes.current,
                 label: `${getIndicatorName(indicator)} ${yearSelection === 'both' ? currentYear : ''}`,
@@ -1214,19 +1212,18 @@ async function analyzeIndicator(indicator, chartId) {
             });
 
             if (threshold > 0) {
-                let seuilType = 'line'; // Type par défaut pour les autres indicateurs
-                let seuilData = Array(12).fill(threshold); // Data par défaut
-                let seuilBackground = 'transparent'; // Fond par défaut
-                let seuilBorderDash = [10, 5]; // Dash par défaut
-                let seuilFill = false; // Fill par défaut
+                let seuilType = 'line';
+                let seuilData = Array(12).fill(threshold);
+                let seuilBackground = 'transparent';
+                let seuilBorderDash = [10, 5];
+                let seuilFill = false;
 
-                // Modification spécifique pour 'nombre_reclamations' : seuil en barre à la fin seulement
                 if (indicator === 'nombre_reclamations') {
-                    seuilType = 'bar'; // Toujours en histogramme (barre)
-                    seuilData = Array(12).fill(0); // 0 pour les mois (pas de barre sur les mois)
-                    seuilBackground = '#F59E0B'; // Couleur de fond pour la barre (orange, comme le border)
-                    seuilBorderDash = []; // Pas de dash pour une barre solide
-                    seuilFill = true; // Fill pour la barre
+                    seuilType = 'bar';
+                    seuilData = Array(12).fill(0);
+                    seuilBackground = '#F59E0B';
+                    seuilBorderDash = [];
+                    seuilFill = true;
                 }
 
                 datasets.push({
@@ -1245,10 +1242,10 @@ async function analyzeIndicator(indicator, chartId) {
             }
         }
 
-        if (yearSelection === previousYear.toString() || yearSelection === 'both') {
+        if (yearSelection === `${previousYear}` || yearSelection === 'both') {
             datasets.push({
                 type: chartTypes.previous === 'area' ? 'line' : chartTypes.previous,
-                label: `${getIndicatorName(indicator)} ${yearSelection === 'both' ? previousYear : ''}`,
+                label: `${getIndicatorName(indicator)} ${previousYear}`,
                 data: previousData,
                 backgroundColor: chartTypes.previous === 'bar' ? Array(previousData.length).fill('#BFC3C8') : 'rgba(191, 195, 200, 0.3)',
                 borderColor: '#BFC3C8',
@@ -1257,75 +1254,109 @@ async function analyzeIndicator(indicator, chartId) {
                 fill: chartTypes.previous === 'area',
                 order: 3
             });
-        }
 
-        // ===== CALCUL CORRIGÉ DES YTD =====
-        let ytdCurrent, ytdPrevious, totalPrevious;
+            if (threshold > 0 && yearSelection === `${previousYear}`) {
+                let seuilType = 'line';
+                let seuilData = Array(12).fill(threshold);
+                let seuilBackground = 'transparent';
+                let seuilBorderDash = [10, 5];
+                let seuilFill = false;
 
-        // Fonction pour calculer YTD correct selon le type d'indicateur
-        function calculateCorrectYTD(monthlyData, rawData, indicator, months) {
-            if (!rawData || !rawData.raw_monthly_data) {
-                // Fallback : utiliser la somme simple si pas de données brutes
-                console.log(`Fallback YTD pour ${indicator}: somme simple`);
-                return monthlyData.slice(0, months).reduce((sum, val) => sum + val, 0);
-            }
-
-            // Utiliser les données brutes pour les indicateurs de ratio
-            const isRatioIndicator = ['ppm_officiel', 'ppm_non_officiel', 'taux_rebut', 'taux_retouche'].includes(indicator);
-            
-            if (isRatioIndicator) {
-                console.log(`Calcul YTD correct pour indicateur ratio: ${indicator}`);
-                
-                let totalNumerateur = 0;
-                let totalDenominateur = 0;
-                
-                for (let month = 1; month <= months; month++) {
-                    const rawMonth = rawData.raw_monthly_data[month];
-                    if (!rawMonth) continue;
-                    
-                    switch (indicator) {
-                        case 'ppm_officiel':
-                            totalNumerateur += rawMonth.pieces_reclamees || 0;
-                            totalDenominateur += rawMonth.pieces_exportees || 0;
-                            break;
-                        case 'ppm_non_officiel':
-                            totalNumerateur += rawMonth.alertes || 0;
-                            totalDenominateur += rawMonth.pieces_exportees || 0;
-                            break;
-                        case 'taux_rebut':
-                            totalNumerateur += rawMonth.pieces_rebutees || 0;
-                            totalDenominateur += rawMonth.pieces_controlees || 0;
-                            break;
-                        case 'taux_retouche':
-                            totalNumerateur += rawMonth.pieces_retouchees || 0;
-                            totalDenominateur += rawMonth.pieces_controlees || 0;
-                            break;
-                    }
+                if (indicator === 'nombre_reclamations') {
+                    seuilType = 'bar';
+                    seuilData = Array(12).fill(0);
+                    seuilBackground = '#F59E0B';
+                    seuilBorderDash = [];
+                    seuilFill = true;
                 }
-                
-                if (totalDenominateur === 0) return 0;
-                
-                switch (indicator) {
-                    case 'ppm_officiel':
-                    case 'ppm_non_officiel':
-                        return (totalNumerateur / totalDenominateur * 1000000);
-                    case 'taux_rebut':
-                    case 'taux_retouche':
-                        return (totalNumerateur / totalDenominateur * 100);
-                    default:
-                        return 0;
-                }
-            } else {
-                // Pour les indicateurs absolus (cout_rebut, nombre_reclamations), faire la somme
-                console.log(`Calcul YTD somme pour indicateur absolu: ${indicator}`);
-                return monthlyData.slice(0, months).reduce((sum, val) => sum + val, 0);
+
+                datasets.push({
+                    type: seuilType,
+                    label: 'Seuil',
+                    data: seuilData,
+                    borderColor: '#F59E0B',
+                    backgroundColor: seuilBackground,
+                    borderWidth: 3,
+                    borderDash: seuilBorderDash,
+                    tension: 0,
+                    fill: seuilFill,
+                    pointRadius: 0,
+                    order: 1
+                });
             }
         }
 
-        // Calculer les YTD avec la méthode correcte
-        ytdCurrent = dataCurrent ? calculateCorrectYTD(currentData, rawDataCurrent, indicator, currentMonth) : 0;
-        ytdPrevious = dataPrevious ? calculateCorrectYTD(previousData, rawDataPrevious, indicator, currentMonth) : 0;
-        totalPrevious = dataPrevious ? calculateCorrectYTD(previousData, rawDataPrevious, indicator, 12) : 0;
+        // Calculer les YTD et Total
+
+// ✅ SOLUTION : DÉFINIR isTotalYear
+const isTotalYear = yearSelection === `${previousYear}`;
+
+function calculateCorrectYTD(monthlyData, rawData, indicator, months, isTotalYear) {
+    const maxMonth = isTotalYear ? months : months - 1;
+    
+    if (!rawData || !rawData.raw_monthly_data) {
+        console.log(`Fallback YTD pour ${indicator}: somme simple jusqu'au mois ${maxMonth}`);
+        return monthlyData.slice(0, maxMonth).reduce((sum, val) => sum + val, 0);
+    }
+
+    const isRatioIndicator = ['ppm_officiel', 'ppm_non_officiel', 'taux_rebut', 'taux_retouche'].includes(indicator);
+
+    if (isRatioIndicator) {
+        console.log(`Calcul YTD CORRIGÉ pour ${indicator} jusqu'au mois ${maxMonth}`);
+        let totalNumerateur = 0;
+        let totalDenominateur = 0;
+
+        for (let month = 1; month <= maxMonth; month++) {
+            const rawMonth = rawData.raw_monthly_data[month];
+            if (!rawMonth) continue;
+
+            switch (indicator) {
+                case 'ppm_officiel':
+                    totalNumerateur += rawMonth.pieces_reclamees || 0;
+                    totalDenominateur += rawMonth.pieces_exportees || 0;
+                    break;
+                case 'ppm_non_officiel':
+                    totalNumerateur += rawMonth.alertes || 0;
+                    totalDenominateur += rawMonth.pieces_exportees || 0;
+                    break;
+                case 'taux_rebut':
+                    totalNumerateur += rawMonth.pieces_rebutees || 0;
+                    totalDenominateur += rawMonth.pieces_controlees || 0;
+                    break;
+                case 'taux_retouche':
+                    totalNumerateur += rawMonth.pieces_retouchees || 0;
+                    totalDenominateur += rawMonth.pieces_controlees || 0;
+                    break;
+            }
+        }
+
+        if (totalDenominateur === 0) return 0;
+
+        switch (indicator) {
+            case 'ppm_officiel':
+            case 'ppm_non_officiel':
+                return (totalNumerateur / totalDenominateur * 1000000);
+            case 'taux_rebut':
+            case 'taux_retouche':
+                return (totalNumerateur / totalDenominateur * 100);
+            default:
+                return 0;
+        }
+    } else {
+        console.log(`Calcul ${isTotalYear ? 'TOTAL' : 'YTD'} somme pour ${indicator} jusqu'au mois ${maxMonth}`);
+        return monthlyData.slice(0, maxMonth).reduce((sum, val) => sum + val, 0);
+    }
+}
+
+        let ytdCurrent = 0, ytdPrevious = 0, totalPrevious = 0;
+
+        if (dataCurrent) {
+            ytdCurrent = calculateCorrectYTD(currentData, rawDataCurrent, indicator, currentMonth,false);
+        }
+        if (dataPrevious) {
+            ytdPrevious = calculateCorrectYTD(previousData, rawDataPrevious, indicator, currentMonth,false);
+            totalPrevious = calculateCorrectYTD(previousData, rawDataPrevious, indicator, 12,true);
+        }
 
         console.log(`YTD CORRIGÉ pour ${indicator}:`);
         console.log(`- YTD ${currentYear}: ${ytdCurrent}`);
@@ -1333,66 +1364,14 @@ async function analyzeIndicator(indicator, chartId) {
         console.log(`- Total ${previousYear}: ${totalPrevious}`);
 
         let extendedLabels = months;
-        let ytdLabels = [];
-        let ytdDatasets = [];
 
-        if (yearSelection === currentYear.toString()) {
-            extendedLabels = [...months, `YTD ${currentYear}`];
-            datasets.forEach(dataset => {
-                if (dataset.label.includes(currentYear) || !dataset.label.includes(previousYear)) {
-                    dataset.data = [...dataset.data, 0];
-                } else if (dataset.label === 'Seuil') {
-                    if (indicator === 'nombre_reclamations') {
-                        dataset.data = [...dataset.data, threshold];
-                    } else {
-                        dataset.data = [...dataset.data, null];
-                    }
-                }
-            });
-            datasets.push({
-                type: 'bar',
-                label: `YTD ${currentYear}`,
-                data: [...Array(12).fill(0), ytdCurrent],
-                backgroundColor: '#1E3A8A',
-                borderColor: '#1E3A8A',
-                borderWidth: 1,
-                order: 4
-            });
-        } else if (yearSelection === previousYear.toString()) {
-            extendedLabels = [...months, `YTD ${previousYear}`, `Total ${previousYear}`];
-            datasets.forEach(dataset => {
-                if (dataset.label.includes(previousYear) || !dataset.label.includes(currentYear)) {
-                    dataset.data = [...dataset.data, 0, 0];
-                } else if (dataset.label === 'Seuil') {
-                    if (indicator === 'nombre_reclamations') {
-                        dataset.data = [...dataset.data, 0, threshold];
-                    } else {
-                        dataset.data = [...dataset.data, null, null];
-                    }
-                }
-            });
-            datasets.push({
-                type: 'bar',
-                label: `YTD ${previousYear}`,
-                data: [...Array(12).fill(0), ytdPrevious, 0],
-                backgroundColor: '#3B82F6',
-                borderColor: '#3B82F6',
-                borderWidth: 1,
-                order: 5
-            });
-            datasets.push({
-                type: 'bar',
-                label: `Total ${previousYear}`,
-                data: [...Array(12).fill(0), 0, totalPrevious],
-                backgroundColor: '#60A5FA',
-                borderColor: '#60A5FA',
-                borderWidth: 1,
-                order: 6
-            });
-        } else if (yearSelection === 'both') {
+        // Ajouter les colonnes YTD et Total selon l'année sélectionnée
+        if (yearSelection === `${currentYear}` || yearSelection === 'both') {
             extendedLabels = [...months, `YTD ${currentYear}`, `YTD ${previousYear}`, `Total ${previousYear}`];
             datasets.forEach(dataset => {
-                if (dataset.label.includes(currentYear) || dataset.label.includes(previousYear)) {
+                if (dataset.label.includes(`${currentYear}`)) {
+                    dataset.data = [...dataset.data, 0, 0, 0];
+                } else if (dataset.label.includes(`${previousYear}`)) {
                     dataset.data = [...dataset.data, 0, 0, 0];
                 } else if (dataset.label === 'Seuil') {
                     if (indicator === 'nombre_reclamations') {
@@ -1402,6 +1381,7 @@ async function analyzeIndicator(indicator, chartId) {
                     }
                 }
             });
+
             datasets.push({
                 type: 'bar',
                 label: `YTD ${currentYear}`,
@@ -1411,6 +1391,7 @@ async function analyzeIndicator(indicator, chartId) {
                 borderWidth: 1,
                 order: 4
             });
+
             datasets.push({
                 type: 'bar',
                 label: `YTD ${previousYear}`,
@@ -1420,10 +1401,44 @@ async function analyzeIndicator(indicator, chartId) {
                 borderWidth: 1,
                 order: 5
             });
+
             datasets.push({
                 type: 'bar',
                 label: `Total ${previousYear}`,
                 data: [...Array(12).fill(0), 0, 0, totalPrevious],
+                backgroundColor: '#60A5FA',
+                borderColor: '#60A5FA',
+                borderWidth: 1,
+                order: 6
+            });
+        } else if (yearSelection === `${previousYear}`) {
+            extendedLabels = [...months, `YTD ${previousYear}`, `Total ${previousYear}`];
+            datasets.forEach(dataset => {
+                if (dataset.label.includes(`${previousYear}`)) {
+                    dataset.data = [...dataset.data, 0, 0];
+                } else if (dataset.label === 'Seuil') {
+                    if (indicator === 'nombre_reclamations') {
+                        dataset.data = [...dataset.data, 0, threshold];
+                    } else {
+                        dataset.data = [...dataset.data, null, null];
+                    }
+                }
+            });
+
+            datasets.push({
+                type: 'bar',
+                label: `YTD ${previousYear}`,
+                data: [...Array(12).fill(0), ytdPrevious, 0],
+                backgroundColor: '#3B82F6',
+                borderColor: '#3B82F6',
+                borderWidth: 1,
+                order: 5
+            });
+
+            datasets.push({
+                type: 'bar',
+                label: `Total ${previousYear}`,
+                data: [...Array(12).fill(0), 0, totalPrevious],
                 backgroundColor: '#60A5FA',
                 borderColor: '#60A5FA',
                 borderWidth: 1,
@@ -1437,25 +1452,27 @@ async function analyzeIndicator(indicator, chartId) {
         }, {
             indicator: indicator,
             plugins: {
-                title: { 
-                    display: true, 
-                    text: `${getIndicatorName(indicator)} - ${atelier}`, 
-                    font: { size: 16, weight: 'bold' }, 
-                    padding: 20 
+                title: {
+                    display: true,
+                    text: `${getIndicatorName(indicator)} - ${atelier}`,
+                    font: { size: 16, weight: 'bold' },
+                    padding: 20
                 },
-                subtitle: { 
-                    display: true, 
-                    text: yearSelection === 'both' ? `Comparaison ${currentYear} vs ${previousYear} (YTD corrigé)` : `Données ${yearSelection}`, 
-                    font: { size: 12, style: 'italic' } 
+                subtitle: {
+                    display: true,
+                    text: yearSelection === 'both' ? `Comparaison ${currentYear} vs ${previousYear} (YTD)` :
+                          yearSelection === `${currentYear}` ? `Données ${currentYear} (YTD )` :
+                          `Données ${previousYear} (YTD et Total)`,
+                    font: { size: 12, style: 'italic' }
                 }
             },
-            scales: { 
-                y: { 
-                    title: { 
-                        display: true, 
-                        text: getIndicatorUnit(indicator) 
-                    } 
-                } 
+            scales: {
+                y: {
+                    title: {
+                        display: true,
+                        text: getIndicatorUnit(indicator)
+                    }
+                }
             }
         });
 
@@ -1584,7 +1601,7 @@ function displayYTDData(ytdData) {
             } else if (atelier === 'UAP2') {
                 apiUrl = `/api/ytd_data?atelier=Manchons,Colliers,Racks,Moulage,Composite,Système de visualisation&annee=${selectedYear}&aggregate=sum`;
             } else if (atelier === 'Total') {
-                apiUrl = `/api/ytd_data?annee=${selectedYear}&aggregate=total`;
+                apiUrl = `/api/ytd_data?atelier=Total&annee=${currentYear}`;
             } else {
                 apiUrl = `/api/ytd_data?atelier=${encodeURIComponent(atelier)}&annee=${selectedYear}`;
             }
