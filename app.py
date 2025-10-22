@@ -102,6 +102,7 @@ def init_database():
             atelier TEXT NOT NULL,
             valeur REAL NOT NULL,
             seuil REAL NOT NULL,
+            valeur_ytd DECIMAL(10, 3) NOT NULL,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         );
         
@@ -3880,10 +3881,6 @@ def get_charts_data_comparison():
 
 
 
-
-
-
-
 import logging
 
 # Configure logging
@@ -4121,10 +4118,132 @@ def graphique():
     return render_template('quality_manager/dashboard.html')
 
 
+@app.route('/api/cnq_ytd_value', methods=['GET'])
+def get_cnq_ytd_value():
+    """Récupère la valeur YTD CNQ depuis la colonne valeur_ytd de cnq"""
+    try:
+        year = request.args.get('annee', default=datetime.now().year, type=int)
+        
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        
+        # Récupérer la valeur YTD (non-zéro) du mois 1 de l'année
+        cursor.execute(
+            '''SELECT valeur_ytd FROM cnq 
+               WHERE annee = ? AND mois = 1 AND atelier = "Total" AND valeur_ytd > 0
+               ORDER BY created_at DESC LIMIT 1''',
+            (year,)
+        )
+        result = cursor.fetchone()
+        conn.close()
+        
+        if result and result[0]:
+            return jsonify({
+                'valeur_ytd': float(result[0]),
+                'annee': year,
+                'status': 'success'
+            })
+        else:
+            return jsonify({
+                'valeur_ytd': 0,
+                'annee': year,
+                'status': 'no_data'
+            })
+    except Exception as e:
+        print(f"❌ Erreur get_cnq_ytd_value: {str(e)}")
+        return jsonify({
+            'error': str(e),
+            'status': 'error',
+            'valeur_ytd': 0
+        }), 500
+
+
+@app.route('/admin/update_cnq_ytd', methods=['POST'])
+def update_cnq_ytd():
+    """Met à jour la valeur YTD du CNQ dans la colonne valeur_ytd de cnq"""
+    try:
+        cnq_ytd_value = float(request.form.get('cnq_ytd_value'))
+        cnq_ytd_year = int(request.form.get('cnq_ytd_year'))
+        
+        # Validation
+        if cnq_ytd_value < 0 or cnq_ytd_value > 100:
+            flash('La valeur YTD CNQ doit être entre 0 et 100%', 'error')
+            return redirect(url_for('admin_thresholds'))
+        
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        
+        # Vérifier si une entrée existe déjà pour mois=1 et atelier="Total"
+        cursor.execute(
+            '''SELECT id FROM cnq 
+               WHERE annee = ? AND mois = 1 AND atelier = "Total"''',
+            (cnq_ytd_year,)
+        )
+        existing = cursor.fetchone()
+        
+        if existing:
+            # Mettre à jour - seulement la colonne valeur_ytd
+            cursor.execute(
+                '''UPDATE cnq SET valeur_ytd = ? 
+                   WHERE annee = ? AND mois = 1 AND atelier = "Total"''',
+                (cnq_ytd_value, cnq_ytd_year)
+            )
+            message = f'Valeur YTD CNQ {cnq_ytd_year} mise à jour avec succès'
+        else:
+            # Insérer une nouvelle entrée avec mois=1
+            cursor.execute(
+                '''INSERT INTO cnq (mois, annee, atelier, valeur, seuil, valeur_ytd) 
+                   VALUES (1, ?, "Total", 0, 0, ?)''',
+                (cnq_ytd_year, cnq_ytd_value)
+            )
+            message = f'Valeur YTD CNQ {cnq_ytd_year} ajoutée avec succès'
+        
+        conn.commit()
+        conn.close()
+        
+        flash(message, 'success')
+        print(f"✅ CNQ YTD mise à jour dans table cnq: {cnq_ytd_year} = {cnq_ytd_value}%")
+        
+    except ValueError as e:
+        flash(f'Erreur de validation : {str(e)}', 'error')
+        print(f"❌ Erreur validation CNQ YTD: {str(e)}")
+    except Exception as e:
+        flash(f'Erreur : {str(e)}', 'error')
+        print(f"❌ Erreur CNQ YTD: {str(e)}")
+    
+    return redirect(url_for('admin_thresholds'))
+
+# À ajouter dans votre app.py
+
+def migrate_cnq_table():
+    """Ajoute la colonne valeur_ytd si elle n'existe pas"""
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        
+        # Vérifier si la colonne existe déjà dans cnq
+        cursor.execute("PRAGMA table_info(cnq)")
+        columns = [column[1] for column in cursor.fetchall()]
+        
+        if 'valeur_ytd' not in columns:
+            print("⚠️  Ajout de la colonne valeur_ytd à la table cnq...")
+            cursor.execute(
+                'ALTER TABLE cnq ADD COLUMN valeur_ytd DECIMAL(10, 3) DEFAULT 0'
+            )
+            conn.commit()
+            print("✅ Colonne valeur_ytd ajoutée à cnq avec succès")
+        else:
+            print("ℹ️  La colonne valeur_ytd existe déjà dans cnq")
+        
+        conn.close()
+    except Exception as e:
+        print(f"❌ Erreur lors de la migration: {str(e)}")
+
+        
 if __name__ == '__main__':
     # Initialiser la base de données
     init_database()
-    
+    migrate_cnq_table()  # Ajoute la colonne si manquante
     print("Base de données initialisée avec succès!")
     print("Utilisateur admin créé:")
     #print("  - Nom de compte: skander.chniti")

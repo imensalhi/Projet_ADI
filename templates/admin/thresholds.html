@@ -253,69 +253,99 @@
         {% endwith %}
 
         <!-- CNQ Section Simplifiée -->
-        <div class="cnq-section">
-            <div class="cnq-title">
-                <i class="fas fa-industry me-3"></i>
-                CNQ - Coût de Non-Qualité (Toute l'Usine)
-            </div>
-            
-            <div class="row">
-                <div class="col-md-8">
-                    <div class="cnq-form-container">
-                        <div class="cnq-form-title">Ajouter une nouvelle valeur CNQ</div>
-                        <form action="/admin/update_cnq" method="POST" class="mb-0">
-                            <div class="row cnq-form-row">
-                                <div class="col-md-4">
-                                    <label for="cnq_value" class="form-label text-light">Valeur CNQ (%)</label>
-                                    <input type="number" step="0.01" max="100" min="0" class="form-control" 
-                                           id="cnq_value" name="cnq_value" placeholder="Ex: 5.5" required>
-                                </div>
-                                <div class="col-md-3">
-                                    <label for="cnq_month" class="form-label text-light">Mois</label>
-                                    <select class="form-select" id="cnq_month" name="cnq_month" required>
-                                        <option value="">Sélectionner</option>
-                                        <option value="1">Janvier</option>
-                                        <option value="2">Février</option>
-                                        <option value="3">Mars</option>
-                                        <option value="4">Avril</option>
-                                        <option value="5">Mai</option>
-                                        <option value="6">Juin</option>
-                                        <option value="7">Juillet</option>
-                                        <option value="8">Août</option>
-                                        <option value="9">Septembre</option>
-                                        <option value="10">Octobre</option>
-                                        <option value="11">Novembre</option>
-                                        <option value="12">Décembre</option>
-                                    </select>
-                                </div>
-                                <div class="col-md-3">
-                                    <label for="cnq_year" class="form-label text-light">Année</label>
-                                    <select class="form-select" id="cnq_year" name="cnq_year" required>
-                                        <option value="">Sélectionner</option>
-                                        <option value="2024">2024</option>
-                                        <option value="2025">2025</option>
-                                        <option value="2026">2026</option>
-                                    </select>
-                                </div>
-                                <div class="col-md-2 d-flex align-items-end">
-                                    <button type="submit" class="btn btn-light w-100 fw-bold">
-                                        <i class="fas fa-save me-1"></i>
-                                        Ajouter
-                                    </button>
-                                </div>
-                            </div>
-                        </form>
+<!-- CNQ Section Simplifiée -->
+<div class="cnq-section">
+    <div class="cnq-title">
+        <i class="fas fa-industry me-3"></i>
+        CNQ - Coût de Non-Qualité (Toute l'Usine)
+    </div>
+    
+    <div class="row">
+        <div class="col-md-8">
+            <div class="cnq-form-container">
+                <div class="cnq-form-title">Ajouter une nouvelle valeur CNQ mensuelle</div>
+                <form action="/admin/update_cnq" method="POST" class="mb-3">
+                    <div class="row cnq-form-row">
+                        <div class="col-md-4">
+                            <label for="cnq_value" class="form-label text-light">Valeur CNQ (%)</label>
+                            <input type="number" step="0.01" max="100" min="0" class="form-control" 
+                                   id="cnq_value" name="cnq_value" placeholder="Ex: 5.5" required>
+                        </div>
+                        <div class="col-md-3">
+                            <label for="cnq_month" class="form-label text-light">Mois</label>
+                            <select class="form-select" id="cnq_month" name="cnq_month" required>
+                                <option value="">Sélectionner</option>
+                                <option value="1">Janvier</option>
+                                <option value="2">Février</option>
+                                <option value="3">Mars</option>
+                                <option value="4">Avril</option>
+                                <option value="5">Mai</option>
+                                <option value="6">Juin</option>
+                                <option value="7">Juillet</option>
+                                <option value="8">Août</option>
+                                <option value="9">Septembre</option>
+                                <option value="10">Octobre</option>
+                                <option value="11">Novembre</option>
+                                <option value="12">Décembre</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label for="cnq_year" class="form-label text-light">Année</label>
+                            <select class="form-select" id="cnq_year" name="cnq_year" required>
+                                <option value="">Sélectionner</option>
+                                <option value="2024">2024</option>
+                                <option value="2025">2025</option>
+                                <option value="2026">2026</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2 d-flex align-items-end">
+                            <button type="submit" class="btn btn-light w-100 fw-bold">
+                                <i class="fas fa-save me-1"></i>
+                                Ajouter
+                            </button>
+                        </div>
                     </div>
-                </div>
-                <div class="col-md-4 d-flex align-items-center">
-                    <button type="button" class="btn btn-light btn-lg w-100" 
-                            data-bs-toggle="modal" data-bs-target="#cnqThresholdModal">
-                        <i class="fas fa-sliders-h me-2"></i>
-                        Modifier le Seuil CNQ
-                    </button>
-                </div>
+                </form>
+
+                <hr class="border-light">
+
+                <div class="cnq-form-title">Ajouter/Modifier une valeur YTD CNQ</div>
+                <form action="/admin/update_cnq_ytd" method="POST" class="mb-0">
+                    <div class="row cnq-form-row">
+                        <div class="col-md-6">
+                            <label for="cnq_ytd_value" class="form-label text-light">Valeur YTD CNQ (%)</label>
+                            <input type="number" step="0.001" max="100" min="0" class="form-control" 
+                                   id="cnq_ytd_value" name="cnq_ytd_value" placeholder="Ex: 10.0" required>
+                            <small class="text-light">Cette valeur s'affichera directement sur le graphique CNQ</small>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="cnq_ytd_year" class="form-label text-light">Année</label>
+                            <select class="form-select" id="cnq_ytd_year" name="cnq_ytd_year" required>
+                                <option value="">Sélectionner</option>
+                                <option value="2024">2024</option>
+                                <option value="2025">2025</option>
+                                <option value="2026">2026</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2 d-flex align-items-end">
+                            <button type="submit" class="btn btn-light w-100 fw-bold">
+                                <i class="fas fa-save me-1"></i>
+                                Sauv.
+                            </button>
+                        </div>
+                    </div>
+                </form>
             </div>
         </div>
+        <div class="col-md-4 d-flex align-items-center">
+            <button type="button" class="btn btn-light btn-lg w-100" 
+                    data-bs-toggle="modal" data-bs-target="#cnqThresholdModal">
+                <i class="fas fa-sliders-h me-2"></i>
+                Modifier le Seuil CNQ
+            </button>
+        </div>
+    </div>
+</div>
 
         <!-- Bouton Modifier Seuil -->
         <div class="mb-4">
@@ -556,74 +586,40 @@
         });
 
         // Validation du formulaire CNQ
-        document.querySelector('form[action="/admin/update_cnq"]').addEventListener('submit', function(e) {
-            const cnqValue = parseFloat(document.getElementById('cnq_value').value);
-            const month = document.getElementById('cnq_month').value;
-            const year = document.getElementById('cnq_year').value;
-            
-            if (!cnqValue || !month || !year) {
-                e.preventDefault();
-                alert('Tous les champs sont obligatoires pour la saisie CNQ');
-                return;
-            }
-            
-            if (cnqValue < 0 || cnqValue > 100) {
-                e.preventDefault();
-                alert('La valeur CNQ doit être entre 0 et 100%');
-                return;
-            }
-            
-            if (cnqValue > 50) {
-                if (!confirm('Cette valeur CNQ semble très élevée (' + cnqValue + '%). Êtes-vous sûr de vouloir continuer ?')) {
-                    e.preventDefault();
-                    return;
-                }
-            }
-        });
-        
-        // Mise à jour de l'aide contextuelle selon l'indicateur sélectionné
-        document.getElementById('indicateur').addEventListener('change', function() {
-            const valeurSeuil = document.getElementById('valeur_seuil');
-            const formText = valeurSeuil.nextElementSibling;
-            
-            switch(this.value) {
-                case 'PPM Officiel':
-                case 'PPM Non Officiel':
-                    formText.textContent = 'Valeur en parties par million (ppm). Valeurs typiques : 50-500 ppm';
-                    valeurSeuil.placeholder = 'Ex: 100';
-                    break;
-                case 'Taux de Rebut':
-                case 'Taux de Retouche':
-                    formText.textContent = 'Valeur en pourcentage (%). Valeurs typiques : 1-10%';
-                    valeurSeuil.placeholder = 'Ex: 2.5';
-                    break;
-                case 'Coût de Rebut':
-                    formText.textContent = 'Coût des rebuts en dinars tunisiens (TND). Valeurs typiques : 100-2000 TND';
-                    valeurSeuil.placeholder = 'Ex: 500';
-                    break;
-                case 'Nombre de reclamation':
-                    formText.textContent = 'Nombre de réclamations par période. Valeurs typiques : 1-20 réclamations';
-                    valeurSeuil.placeholder = 'Ex: 5';
-                    break;
-                default:
-                    formText.textContent = 'L\'unité dépend de l\'indicateur sélectionné (ppm, %, TND, nombre)';
-                    valeurSeuil.placeholder = '';
-            }
-        });
+// Auto-sélection de l'année actuelle
+document.addEventListener('DOMContentLoaded', function() {
+    const currentDate = new Date();
+    const currentYear = currentDate.getFullYear();
+    
+    const ytdYearSelect = document.getElementById('cnq_ytd_year');
+    if (ytdYearSelect && ytdYearSelect.querySelector(`option[value="${currentYear}"]`)) {
+        ytdYearSelect.value = currentYear;
+    }
+});
 
-        // Auto-sélection de l'année et du mois actuels pour CNQ
-        document.addEventListener('DOMContentLoaded', function() {
-            const currentDate = new Date();
-            const currentYear = currentDate.getFullYear();
-            const currentMonth = currentDate.getMonth() + 1;
-            
-            const yearSelect = document.getElementById('cnq_year');
-            if (yearSelect.querySelector(`option[value="${currentYear}"]`)) {
-                yearSelect.value = currentYear;
-            }
-            
-            document.getElementById('cnq_month').value = currentMonth;
-        });
+// Gérer la soumission du formulaire avec rechargement
+document.getElementById('cnqYtdForm').addEventListener('submit', function(e) {
+    const cnqYtdValue = parseFloat(document.getElementById('cnq_ytd_value').value);
+    const ytdYear = document.getElementById('cnq_ytd_year').value;
+    
+    if (!cnqYtdValue && cnqYtdValue !== 0 || !ytdYear) {
+        e.preventDefault();
+        alert('Tous les champs sont obligatoires');
+        return;
+    }
+    
+    if (cnqYtdValue < 0 || cnqYtdValue > 100) {
+        e.preventDefault();
+        alert('La valeur YTD CNQ doit être entre 0 et 100%');
+        return;
+    }
+    
+    if (cnqYtdValue > 50) {
+        if (!confirm('Cette valeur YTD CNQ semble très élevée (' + cnqYtdValue + '%). Êtes-vous sûr de vouloir continuer ?')) {
+            e.preventDefault();
+        }
+    }
+});
     </script>
 </body>
 </html>

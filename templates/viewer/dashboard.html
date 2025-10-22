@@ -1157,28 +1157,30 @@ async function analyzeIndicator(indicator, chartId) {
             dataPrevious = await responsePrevious.json();
         }
 
-        // Récupérer les données brutes pour calculer correctement les YTD
+        // Récupérer les données brutes pour calculer correctement les YTD (sauf pour CNQ)
         let rawDataCurrent = null;
         let rawDataPrevious = null;
 
-        try {
-            if (yearSelection === `${currentYear}` || yearSelection === 'both') {
-                const rawApiUrlCurrent = apiUrl + '&raw_data=true';
-                const rawResponseCurrent = await fetch(rawApiUrlCurrent);
-                if (rawResponseCurrent.ok) {
-                    rawDataCurrent = await rawResponseCurrent.json();
+        if (indicator !== 'cnq') {
+            try {
+                if (yearSelection === `${currentYear}` || yearSelection === 'both') {
+                    const rawApiUrlCurrent = apiUrl + '&raw_data=true';
+                    const rawResponseCurrent = await fetch(rawApiUrlCurrent);
+                    if (rawResponseCurrent.ok) {
+                        rawDataCurrent = await rawResponseCurrent.json();
+                    }
                 }
-            }
 
-            if (yearSelection === `${previousYear}` || yearSelection === 'both') {
-                const rawApiUrlPrevious = apiUrl.replace(`annee=${currentYear}`, `annee=${previousYear}`) + '&raw_data=true';
-                const rawResponsePrevious = await fetch(rawApiUrlPrevious);
-                if (rawResponsePrevious.ok) {
-                    rawDataPrevious = await rawResponsePrevious.json();
+                if (yearSelection === `${previousYear}` || yearSelection === 'both') {
+                    const rawApiUrlPrevious = apiUrl.replace(`annee=${currentYear}`, `annee=${previousYear}`) + '&raw_data=true';
+                    const rawResponsePrevious = await fetch(rawApiUrlPrevious);
+                    if (rawResponsePrevious.ok) {
+                        rawDataPrevious = await rawResponsePrevious.json();
+                    }
                 }
+            } catch (e) {
+                console.log('Données brutes non disponibles, utilisation méthode alternative');
             }
-        } catch (e) {
-            console.log('Données brutes non disponibles, utilisation méthode alternative');
         }
 
         let datasets = [];
@@ -1287,78 +1289,108 @@ async function analyzeIndicator(indicator, chartId) {
         }
 
         // Calculer les YTD et Total
+        const isTotalYear = yearSelection === `${previousYear}`;
+        let ytdCurrent = 0, ytdPrevious = 0, totalPrevious = 0;
 
-// ✅ SOLUTION : DÉFINIR isTotalYear
-const isTotalYear = yearSelection === `${previousYear}`;
+        if (indicator === 'cnq') {
+            // Pour le CNQ, récupérer directement la valeur YTD depuis l'API
+            if (yearSelection === `${currentYear}` || yearSelection === 'both') {
+                try {
+                    const ytdResponse = await fetch(`/api/cnq_ytd_value?annee=${currentYear}`);
+                    if (!ytdResponse.ok) throw new Error(`Erreur API YTD CNQ ${currentYear}: ${ytdResponse.status}`);
+                    const ytdData = await ytdResponse.json();
+                    ytdCurrent = ytdData.valeur_ytd || 0;
+                    console.log(`YTD CNQ ${currentYear} récupéré directement depuis BD: ${ytdCurrent}%`);
+                } catch (e) {
+                    console.error(`Erreur récupération YTD CNQ ${currentYear}:`, e);
+                    ytdCurrent = 0;
+                }
+            }
 
-function calculateCorrectYTD(monthlyData, rawData, indicator, months, isTotalYear) {
-    const maxMonth = isTotalYear ? months : months - 1;
-    
-    if (!rawData || !rawData.raw_monthly_data) {
-        console.log(`Fallback YTD pour ${indicator}: somme simple jusqu'au mois ${maxMonth}`);
-        return monthlyData.slice(0, maxMonth).reduce((sum, val) => sum + val, 0);
-    }
+            // Pour l'année précédente
+            if (yearSelection === `${previousYear}` || yearSelection === 'both') {
+                try {
+                    const ytdResponse = await fetch(`/api/cnq_ytd_value?annee=${previousYear}`);
+                    if (!ytdResponse.ok) throw new Error(`Erreur API YTD CNQ ${previousYear}: ${ytdResponse.status}`);
+                    const ytdData = await ytdResponse.json();
+                    ytdPrevious = ytdData.valeur_ytd || 0;
+                    totalPrevious = ytdPrevious; // Pour CNQ, YTD et Total sont identiques
+                    console.log(`YTD CNQ ${previousYear} récupéré directement depuis BD: ${ytdPrevious}%`);
+                } catch (e) {
+                    console.error(`Erreur récupération YTD CNQ ${previousYear}:`, e);
+                    ytdPrevious = 0;
+                    totalPrevious = 0;
+                }
+            }
+        } else {
+            // Calcul YTD pour les autres indicateurs
+            function calculateCorrectYTD(monthlyData, rawData, indicator, months, isTotalYear) {
+                const maxMonth = isTotalYear ? months : months - 1;
+                
+                if (!rawData || !rawData.raw_monthly_data) {
+                    console.log(`Fallback YTD pour ${indicator}: somme simple jusqu'au mois ${maxMonth}`);
+                    return monthlyData.slice(0, maxMonth).reduce((sum, val) => sum + val, 0);
+                }
 
-    const isRatioIndicator = ['ppm_officiel', 'ppm_non_officiel', 'taux_rebut', 'taux_retouche'].includes(indicator);
+                const isRatioIndicator = ['ppm_officiel', 'ppm_non_officiel', 'taux_rebut', 'taux_retouche'].includes(indicator);
 
-    if (isRatioIndicator) {
-        console.log(`Calcul YTD CORRIGÉ pour ${indicator} jusqu'au mois ${maxMonth}`);
-        let totalNumerateur = 0;
-        let totalDenominateur = 0;
+                if (isRatioIndicator) {
+                    console.log(`Calcul YTD CORRIGÉ pour ${indicator} jusqu'au mois ${maxMonth}`);
+                    let totalNumerateur = 0;
+                    let totalDenominateur = 0;
 
-        for (let month = 1; month <= maxMonth; month++) {
-            const rawMonth = rawData.raw_monthly_data[month];
-            if (!rawMonth) continue;
+                    for (let month = 1; month <= maxMonth; month++) {
+                        const rawMonth = rawData.raw_monthly_data[month];
+                        if (!rawMonth) continue;
 
-            switch (indicator) {
-                case 'ppm_officiel':
-                    totalNumerateur += rawMonth.pieces_reclamees || 0;
-                    totalDenominateur += rawMonth.pieces_exportees || 0;
-                    break;
-                case 'ppm_non_officiel':
-                    totalNumerateur += rawMonth.alertes || 0;
-                    totalDenominateur += rawMonth.pieces_exportees || 0;
-                    break;
-                case 'taux_rebut':
-                    totalNumerateur += rawMonth.pieces_rebutees || 0;
-                    totalDenominateur += rawMonth.pieces_controlees || 0;
-                    break;
-                case 'taux_retouche':
-                    totalNumerateur += rawMonth.pieces_retouchees || 0;
-                    totalDenominateur += rawMonth.pieces_controlees || 0;
-                    break;
+                        switch (indicator) {
+                            case 'ppm_officiel':
+                                totalNumerateur += rawMonth.pieces_reclamees || 0;
+                                totalDenominateur += rawMonth.pieces_exportees || 0;
+                                break;
+                            case 'ppm_non_officiel':
+                                totalNumerateur += rawMonth.alertes || 0;
+                                totalDenominateur += rawMonth.pieces_exportees || 0;
+                                break;
+                            case 'taux_rebut':
+                                totalNumerateur += rawMonth.pieces_rebutees || 0;
+                                totalDenominateur += rawMonth.pieces_controlees || 0;
+                                break;
+                            case 'taux_retouche':
+                                totalNumerateur += rawMonth.pieces_retouchees || 0;
+                                totalDenominateur += rawMonth.pieces_controlees || 0;
+                                break;
+                        }
+                    }
+
+                    if (totalDenominateur === 0) return 0;
+
+                    switch (indicator) {
+                        case 'ppm_officiel':
+                        case 'ppm_non_officiel':
+                            return (totalNumerateur / totalDenominateur * 1000000);
+                        case 'taux_rebut':
+                        case 'taux_retouche':
+                            return (totalNumerateur / totalDenominateur * 100);
+                        default:
+                            return 0;
+                    }
+                } else {
+                    console.log(`Calcul ${isTotalYear ? 'TOTAL' : 'YTD'} somme pour ${indicator} jusqu'au mois ${maxMonth}`);
+                    return monthlyData.slice(0, maxMonth).reduce((sum, val) => sum + val, 0);
+                }
+            }
+
+            if (dataCurrent) {
+                ytdCurrent = calculateCorrectYTD(currentData, rawDataCurrent, indicator, currentMonth, false);
+            }
+            if (dataPrevious) {
+                ytdPrevious = calculateCorrectYTD(previousData, rawDataPrevious, indicator, currentMonth, false);
+                totalPrevious = calculateCorrectYTD(previousData, rawDataPrevious, indicator, 12, true);
             }
         }
 
-        if (totalDenominateur === 0) return 0;
-
-        switch (indicator) {
-            case 'ppm_officiel':
-            case 'ppm_non_officiel':
-                return (totalNumerateur / totalDenominateur * 1000000);
-            case 'taux_rebut':
-            case 'taux_retouche':
-                return (totalNumerateur / totalDenominateur * 100);
-            default:
-                return 0;
-        }
-    } else {
-        console.log(`Calcul ${isTotalYear ? 'TOTAL' : 'YTD'} somme pour ${indicator} jusqu'au mois ${maxMonth}`);
-        return monthlyData.slice(0, maxMonth).reduce((sum, val) => sum + val, 0);
-    }
-}
-
-        let ytdCurrent = 0, ytdPrevious = 0, totalPrevious = 0;
-
-        if (dataCurrent) {
-            ytdCurrent = calculateCorrectYTD(currentData, rawDataCurrent, indicator, currentMonth,false);
-        }
-        if (dataPrevious) {
-            ytdPrevious = calculateCorrectYTD(previousData, rawDataPrevious, indicator, currentMonth,false);
-            totalPrevious = calculateCorrectYTD(previousData, rawDataPrevious, indicator, 12,true);
-        }
-
-        console.log(`YTD CORRIGÉ pour ${indicator}:`);
+        console.log(`YTD pour ${indicator}:`);
         console.log(`- YTD ${currentYear}: ${ytdCurrent}`);
         console.log(`- YTD ${previousYear}: ${ytdPrevious}`);
         console.log(`- Total ${previousYear}: ${totalPrevious}`);
@@ -1461,7 +1493,7 @@ function calculateCorrectYTD(monthlyData, rawData, indicator, months, isTotalYea
                 subtitle: {
                     display: true,
                     text: yearSelection === 'both' ? `Comparaison ${currentYear} vs ${previousYear} (YTD)` :
-                          yearSelection === `${currentYear}` ? `Données ${currentYear} (YTD )` :
+                          yearSelection === `${currentYear}` ? `Données ${currentYear} (YTD)` :
                           `Données ${previousYear} (YTD et Total)`,
                     font: { size: 12, style: 'italic' }
                 }
@@ -1477,7 +1509,7 @@ function calculateCorrectYTD(monthlyData, rawData, indicator, months, isTotalYea
         });
 
         hideLoading(chartId);
-        console.log(`Graphique ${indicator} créé avec succès (YTD corrigé)`);
+        console.log(`Graphique ${indicator} créé avec succès`);
     } catch (error) {
         console.error(`Erreur ${indicator}:`, error);
         showError(chartId, error.message);
@@ -1490,8 +1522,40 @@ function displayYTDData(ytdData) {
     ytdGrid.innerHTML = '';
 
     const ateliers = Object.keys(ytdData);
+    
     ateliers.forEach((atelier, index) => {
         const data = ytdData[atelier];
+        let cnqValue = data.cnq || 0;
+
+        // ✅ SI l'atelier est 'Total', récupérer directement la valeur_ytd depuis la BD
+        if (atelier === 'Total') {
+            const currentYear = new Date().getFullYear();
+            
+            // Appel synchrone pour récupérer la valeur YTD CNQ
+            fetch(`/api/cnq_ytd_value?annee=${currentYear}`)
+                .then(response => response.json())
+                .then(ytdResponse => {
+                    cnqValue = parseFloat(ytdResponse.valeur_ytd) || 0;
+                    
+                    // Mettre à jour la valeur CNQ dans le DOM pour Total
+                    const ytdCards = document.querySelectorAll('.ytd-card');
+                    ytdCards.forEach(card => {
+                        const workshop = card.querySelector('.ytd-workshop');
+                        if (workshop && workshop.textContent.trim() === 'Total') {
+                            const cnqElements = card.querySelectorAll('.ytd-value');
+                            if (cnqElements[5]) { // Index 5 = 6ème valeur (CNQ)
+                                cnqElements[5].textContent = formatValue(cnqValue, 'taux') + '%';
+                            }
+                        }
+                    });
+                    
+                    console.log(`✅ YTD CNQ Total récupéré: ${cnqValue}%`);
+                })
+                .catch(error => {
+                    console.error('Erreur récupération YTD CNQ Total:', error);
+                });
+        }
+
         const col = document.createElement('div');
         col.className = 'col-lg-3 col-md-6 mb-4';
         col.setAttribute('data-aos', 'fade-up');
@@ -1504,43 +1568,36 @@ function displayYTDData(ytdData) {
                         <div class="ytd-icon ppm"><i class="fas fa-exclamation-triangle"></i></div>
                         <div class="ytd-value">${formatValue(data.ppm_officiel || 0, 'ppm')}</div>
                         <div class="ytd-label">PPM Officiel</div>
-                        <small class="text-muted">YTD Cumulé</small>
                     </div>
                     <div class="col-6 mb-3">
                         <div class="ytd-icon ppm"><i class="fas fa-bell"></i></div>
                         <div class="ytd-value">${formatValue(data.ppm_non_officiel || 0, 'ppm')}</div>
                         <div class="ytd-label">PPM Non Officiel</div>
-                        <small class="text-muted">YTD Cumulé</small>
                     </div>
                     <div class="col-6 mb-3">
                         <div class="ytd-icon rate"><i class="fas fa-trash"></i></div>
                         <div class="ytd-value">${formatValue(data.taux_rebut || 0, 'taux')}%</div>
                         <div class="ytd-label">Taux Rebut</div>
-                        <small class="text-muted">YTD Cumulé</small>
                     </div>
                     <div class="col-6 mb-3">
                         <div class="ytd-icon rate"><i class="fas fa-tools"></i></div>
                         <div class="ytd-value">${formatValue(data.taux_retouche || 0, 'taux')}%</div>
                         <div class="ytd-label">Taux Retouche</div>
-                        <small class="text-muted">YTD Cumulé</small>
                     </div>
                     <div class="col-6 mb-3">
                         <div class="ytd-icon cost"><i class="fas fa-lira-sign"></i></div>
                         <div class="ytd-value">${formatValue(data.cout_rebut || 0, 'cout')} TND</div>
                         <div class="ytd-label">Coût Rebut</div>
-                        <small class="text-muted">YTD Somme</small>
                     </div>
                     <div class="col-6 mb-3">
                         <div class="ytd-icon quality"><i class="fas fa-award"></i></div>
-                        <div class="ytd-value">${formatValue(data.cnq || 0, 'taux')}%</div>
+                        <div class="ytd-value cnq-ytd-value">${formatValue(cnqValue, 'taux')}%</div>
                         <div class="ytd-label">Taux de Non-Qualité</div>
-                        <small class="text-muted">YTD Moyenne</small>
                     </div>
                     <div class="col-6 mb-3">
                         <div class="ytd-icon reclamations"><i class="fas fa-file-invoice"></i></div>
                         <div class="ytd-value">${formatValue(data.nombre_reclamations || 0, 'other')}</div>
                         <div class="ytd-label">Réclamations</div>
-                        <small class="text-muted">YTD Somme</small>
                     </div>
                 </div>
             </div>
@@ -1613,65 +1670,6 @@ function displayYTDData(ytdData) {
                     console.error('Erreur YTD:', error);
                     displayEmptyYTD();
                 });
-        }
-
-        function displayYTDData(ytdData) {
-            const ytdGrid = document.getElementById('ytdGrid');
-            ytdGrid.innerHTML = '';
-
-            const ateliers = Object.keys(ytdData);
-            ateliers.forEach((atelier, index) => {
-                const data = ytdData[atelier];
-                const col = document.createElement('div');
-                col.className = 'col-lg-3 col-md-6 mb-4';
-                col.setAttribute('data-aos', 'fade-up');
-                col.setAttribute('data-aos-delay', (index * 100).toString());
-                col.innerHTML = `
-                    <div class="ytd-card">
-                        <div class="ytd-workshop">${atelier}</div>
-                        <div class="row mt-3">
-                            <div class="col-6 mb-3">
-                                <div class="ytd-icon ppm"><i class="fas fa-exclamation-triangle"></i></div>
-                                <div class="ytd-value">${formatValue(data.ppm_officiel || 0, 'ppm')}</div>
-                                <div class="ytd-label">PPM Officiel</div>
-                            </div>
-                            <div class="col-6 mb-3">
-                                <div class="ytd-icon ppm"><i class="fas fa-bell"></i></div>
-                                <div class="ytd-value">${formatValue(data.ppm_non_officiel || 0, 'ppm')}</div>
-                                <div class="ytd-label">PPM Non Officiel</div>
-                            </div>
-                            <div class="col-6 mb-3">
-                                <div class="ytd-icon rate"><i class="fas fa-trash"></i></div>
-                                <div class="ytd-value">${formatValue(data.taux_rebut || 0, 'taux')}%</div>
-                                <div class="ytd-label">Taux Rebut</div>
-                            </div>
-                            <div class="col-6 mb-3">
-                                <div class="ytd-icon rate"><i class="fas fa-tools"></i></div>
-                                <div class="ytd-value">${formatValue(data.taux_retouche || 0, 'taux')}%</div>
-                                <div class="ytd-label">Taux Retouche</div>
-                            </div>
-                            <div class="col-6 mb-3">
-                                <div class="ytd-icon cost"><i class="fas fa-lira-sign"></i></div>
-                                <div class="ytd-value">${formatValue(data.cout_rebut || 0, 'cout')} TND</div>
-                                <div class="ytd-label">Coût Rebut</div>
-                            </div>
-                            <div class="col-6 mb-3">
-                                <div class="ytd-icon quality"><i class="fas fa-award"></i></div>
-                                <div class="ytd-value">${formatValue(data.cnq || 0, 'taux')}%</div>
-                                <div class="ytd-label">Taux de Non-Qualité</div>
-                            </div>
-                            <div class="col-6 mb-3">
-                                <div class="ytd-icon reclamations"><i class="fas fa-file-invoice"></i></div>
-                                <div class="ytd-value">${formatValue(data.nombre_reclamations || 0, 'other')}</div>
-                                <div class="ytd-label">Réclamations</div>
-                            </div>
-                        </div>
-                    </div>
-                `;
-                ytdGrid.appendChild(col);
-            });
-
-            AOS.refresh();
         }
 
         function displayEmptyYTD() {
